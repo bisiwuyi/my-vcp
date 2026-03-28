@@ -1,0 +1,279 @@
+# OpenCodeArchitect 代码架构师 - 自然语言编程指南
+## VCP 2.0 自我进化回路核心工具 | v2.0.1
+
+OpenCodeArchitect 是 Ritsu（律）调用 OpenCode 进行代码分析和修改的核心工具。
+当需要分析代码结构、诊断问题、或进行代码重构时，使用这个工具。
+
+---
+
+## 核心特性：多 Agent 多话题
+
+- **多 Agent 支持**：不同 Agent 有独立的话题列表，互不干扰
+- **多话题支持**：每个 Agent 可以同时进行多个独立的话题
+- **话题隔离**：每个话题使用独立的 OpenCode 会话，上下文不共享
+- **持久化**：话题数据存储在本地，重启后自动恢复
+
+---
+
+## 一、chat 对话模式（核心）
+
+### 1.1 基本调用
+
+```
+<<<[TOOL_REQUEST]>>>
+tool_name:「始」OpenCodeArchitect「末」,
+command:「始」chat「末」,
+message:「始」请用中文回答。我需要你帮我分析 server.js 的代码结构...「末」,
+agentId:「始」ritsu「末」,
+title:「始」server.js分析「末」,
+timeout:「始」300000「末」
+<<<[END_TOOL_REQUEST]>>>
+```
+
+**参数说明**：
+| 参数 | 必填 | 说明 |
+|------|------|------|
+| message | ✅ | 发送给 OpenCode 的消息 |
+| agentId | ✅ | Agent 标识符，Ritsu 使用 "ritsu" |
+| topicId | ❌ | 话题 ID，不指定则使用最新活跃话题或创建新话题 |
+| title | ❌ | 话题标题，创建新话题时使用 |
+| timeout | ❌ | 超时时间（毫秒），默认 600000 |
+
+**返回值**：
+| 字段 | 说明 |
+|------|------|
+| status | 外层状态，始终为 success/error（Plugin.js 契约） |
+| result.status | 实际业务状态，可能为 timeout |
+| result.answer | OpenCode 的回答 |
+| result.topicId | 当前话题 ID |
+| result.title | 当前话题标题 |
+| result.isNewTopic | 是否是新创建的话题 |
+
+> **注意**: `result.status` 可能为 `timeout`，但外层 `status` 会被映射为 `error`，这是 Plugin.js 契约要求。
+
+---
+
+## 二、话题管理命令
+
+### 2.1 createTopic - 创建话题
+
+```
+<<<[TOOL_REQUEST]>>>
+tool_name:「始」OpenCodeArchitect「末」,
+command:「始」createTopic「末」,
+agentId:「始」ritsu「末」,
+title:「始」server.js优化「末」
+<<<[END_TOOL_REQUEST]>>>
+```
+
+**返回值**：
+```json
+{
+  "status": "success",
+  "result": {
+    "topicId": "topic-xxx",
+    "title": "server.js优化"
+  }
+}
+```
+
+---
+
+### 2.2 listTopics - 列出话题
+
+```
+<<<[TOOL_REQUEST]>>>
+tool_name:「始」OpenCodeArchitect「末」,
+command:「始」listTopics「末」,
+agentId:「始」ritsu「末」
+<<<[END_TOOL_REQUEST]>>>
+```
+
+**返回值**：
+```json
+{
+  "status": "success",
+  "result": {
+    "topics": [
+      {
+        "topicId": "topic-xxx",
+        "title": "server.js优化",
+        "summary": "",
+        "status": "active",
+        "messageCount": 5,
+        "createdAt": 1743120000000,
+        "lastActive": 1743123000000
+      }
+    ]
+  }
+}
+```
+
+---
+
+### 2.3 getTopic - 获取话题详情
+
+```
+<<<[TOOL_REQUEST]>>>
+tool_name:「始」OpenCodeArchitect「末」,
+command:「始」getTopic「末」,
+agentId:「始」ritsu「末」,
+topicId:「始」topic-xxx「末」
+<<<[END_TOOL_REQUEST]>>>
+```
+
+---
+
+### 2.4 switchTopic - 切换话题
+
+```
+<<<[TOOL_REQUEST]>>>
+tool_name:「始」OpenCodeArchitect「末」,
+command:「始」switchTopic「末」,
+agentId:「始」ritsu「末」,
+topicId:「始」topic-xxx「末」
+<<<[END_TOOL_REQUEST]>>>
+```
+
+---
+
+### 2.5 closeTopic - 关闭话题
+
+```
+<<<[TOOL_REQUEST]>>>
+tool_name:「始」OpenCodeArchitect「末」,
+command:「始」closeTopic「末」,
+agentId:「始」ritsu「末」,
+topicId:「始」topic-xxx「末」
+<<<[END_TOOL_REQUEST]>>>
+```
+
+---
+
+## 三、使用场景示例
+
+### 3.1 并行处理多个任务
+
+**场景**：同时进行 server.js 优化和 Plugin.js 分析
+
+```
+# 创建两个独立话题
+<<<[TOOL_REQUEST]>>>
+tool_name:「始」OpenCodeArchitect「末」,
+command:「始」createTopic「末」,
+agentId:「始」ritsu「末」,
+title:「始」server.js性能优化「末」
+<<<[END_TOOL_REQUEST]>>>
+
+<<<[TOOL_REQUEST]>>>
+tool_name:「始」OpenCodeArchitect「末」,
+command:「始」createTopic「末」,
+agentId:「始」ritsu「末」,
+title:「始」Plugin.js架构分析「末」
+<<<[END_TOOL_REQUEST]>>>
+
+# 在各自的话题中工作
+<<<[TOOL_REQUEST]>>>
+tool_name:「始」OpenCodeArchitect「末」,
+command:「始」chat「末」,
+message:「始」分析 server.js 的性能瓶颈...「末」,
+agentId:「始」ritsu「末」,
+topicId:「始」topic-xxx-1「末」
+<<<[END_TOOL_REQUEST]>>>
+
+<<<[TOOL_REQUEST]>>>
+tool_name:「始」OpenCodeArchitect「末」,
+command:「始」chat「末」,
+message:「始」分析 Plugin.js 的架构设计...「末」,
+agentId:「始」ritsu「末」,
+topicId:「始」topic-xxx-2「末」
+<<<[END_TOOL_REQUEST]>>>
+```
+
+### 3.2 查看当前所有话题
+
+```
+<<<[TOOL_REQUEST]>>>
+tool_name:「始」OpenCodeArchitect「末」,
+command:「始」listTopics「末」,
+agentId:「始」ritsu「末」
+<<<[END_TOOL_REQUEST]>>>
+```
+
+### 3.3 切换到指定话题
+
+```
+<<<[TOOL_REQUEST]>>>
+tool_name:「始」OpenCodeArchitect「末」,
+command:「始」switchTopic「末」,
+agentId:「始」ritsu「末」,
+topicId:「始」topic-xxx「末」
+<<<[END_TOOL_REQUEST]>>>
+```
+
+### 3.4 关闭已完成的话题
+
+```
+<<<[TOOL_REQUEST]>>>
+tool_name:「始」OpenCodeArchitect「末」,
+command:「始」closeTopic「末」,
+agentId:「始」ritsu「末」,
+topicId:「始」topic-xxx「末」
+<<<[END_TOOL_REQUEST]>>>
+```
+
+---
+
+## 四、其他命令
+
+### 4.1 consult - 只读分析
+
+```
+<<<[TOOL_REQUEST]>>>
+tool_name:「始」OpenCodeArchitect「末」,
+command:「始」consult「末」,
+query:「始」分析这个文件的问题和优化建议「末」,
+targetFile:「始」server.js「末」
+<<<[END_TOOL_REQUEST]>>>
+```
+
+### 4.2 apply - 执行修改
+
+```
+<<<[TOOL_REQUEST]>>>
+tool_name:「始」OpenCodeArchitect「末」,
+command:「始」apply「末」,
+query:「始」重构这个函数使用 async/await「末」,
+targetFile:「始」server.js「末」,
+options:「始」{"autoBackup": true}「末」
+<<<[END_TOOL_REQUEST]>>>
+```
+
+### 4.3 interrupt - 中断对话
+
+```
+<<<[TOOL_REQUEST]>>>
+tool_name:「始」OpenCodeArchitect「末」,
+command:「始」interrupt「末」,
+pid:「始」12345「末」
+<<<[END_TOOL_REQUEST]>>>
+```
+
+---
+
+## 五、重要提示
+
+1. **agentId 必须指定**：Ritsu 使用 "ritsu"，其他 Agent 使用各自的标识符
+2. **话题独立隔离**：每个话题有独立的 OpenCode 会话，上下文不会污染
+3. **需要显式关闭**：话题不会自动关闭，使用完记得 closeTopic
+4. **超时设置**：复杂任务可能需要较长超时时间
+5. **Plugin.js 契约**：所有返回格式必须是 `{ status: "success"|"error", result: {...} }`
+6. **timeout 映射**：内部 `status: "timeout"` 会自动映射为外层 `status: "error"`
+
+---
+
+## 六、Agent 硬性规定
+
+1. **文档同步**：每次 OpenCode 完成开发任务后，必须更新相关文档
+2. **两轮审查**：每次代码修改后必须进行两轮全面审查
+3. **验证测试**：完成任务后必须进行功能验证测试

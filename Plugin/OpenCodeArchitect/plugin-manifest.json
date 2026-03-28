@@ -1,0 +1,259 @@
+{
+  "name": "OpenCodeArchitect",
+  "displayName": "OpenCode 系统进化桥接器",
+  "description": "VCP 2.0 自我进化回路 - Ritsu 与 OpenCode 的协作桥梁。支持多 Agent 多话题管理，每个话题独立的 OpenCode 会话，话题间完全隔离。",
+  "version": "2.0.1",
+  "pluginType": "synchronous",
+  "entryPoint": {
+    "command": "node index.js"
+  },
+  "capabilities": ["autonomous_coding", "system_analysis", "multi_topic"],
+  "invocationCommands": [
+    {
+      "command": "chat",
+      "description": "对话模式 - 与 OpenCode LLM 持续对话。支持多 Agent 多话题，每个话题独立的 OpenCode 会话",
+      "parameters": {
+        "message": {
+          "type": "string",
+          "required": true,
+          "description": "发送给 OpenCode 的消息"
+        },
+        "agentId": {
+          "type": "string",
+          "default": "default",
+          "description": "Agent 标识符（如 ritsu、nova）"
+        },
+        "topicId": {
+          "type": "string",
+          "description": "话题 ID（可选，不指定则使用最新活跃话题或创建新话题）"
+        },
+        "title": {
+          "type": "string",
+          "description": "话题标题（创建新话题时使用）"
+        },
+        "timeout": {
+          "type": "number",
+          "default": 600000,
+          "description": "超时时间（毫秒）"
+        }
+      },
+      "output": {
+        "status": "string",
+        "answer": "string",
+        "pid": "number",
+        "topicId": "string",
+        "title": "string",
+        "isNewTopic": "boolean",
+        "duration": "number"
+      }
+    },
+    {
+      "command": "interrupt",
+      "description": "中断模式 - 立即关闭 OpenCode 进程，终止当前对话",
+      "parameters": {
+        "pid": {
+          "type": "number",
+          "required": true,
+          "description": "要中断的进程 PID（从 chat 响应中获取）"
+        }
+      },
+      "output": {
+        "status": "string",
+        "message": "string"
+      }
+    },
+    {
+      "command": "createTopic",
+      "description": "创建新话题 - 为指定 Agent 创建全新的独立话题和 OpenCode 会话",
+      "parameters": {
+        "agentId": {
+          "type": "string",
+          "required": true,
+          "description": "Agent 标识符"
+        },
+        "title": {
+          "type": "string",
+          "description": "话题标题（可选）"
+        }
+      },
+      "output": {
+        "status": "string",
+        "topicId": "string",
+        "title": "string"
+      }
+    },
+    {
+      "command": "listTopics",
+      "description": "列出话题 - 列出指定 Agent 的所有话题",
+      "parameters": {
+        "agentId": {
+          "type": "string",
+          "required": true,
+          "description": "Agent 标识符"
+        }
+      },
+      "output": {
+        "status": "string",
+        "topics": "array"
+      }
+    },
+    {
+      "command": "getTopic",
+      "description": "获取话题详情 - 获取指定话题的详细信息",
+      "parameters": {
+        "agentId": {
+          "type": "string",
+          "required": true,
+          "description": "Agent 标识符"
+        },
+        "topicId": {
+          "type": "string",
+          "required": true,
+          "description": "话题 ID"
+        }
+      },
+      "output": {
+        "status": "string",
+        "topic": "object"
+      }
+    },
+    {
+      "command": "closeTopic",
+      "description": "关闭话题 - 显式关闭指定话题，释放 OpenCode 会话",
+      "parameters": {
+        "agentId": {
+          "type": "string",
+          "required": true,
+          "description": "Agent 标识符"
+        },
+        "topicId": {
+          "type": "string",
+          "required": true,
+          "description": "话题 ID"
+        }
+      },
+      "output": {
+        "status": "string",
+        "message": "string"
+      }
+    },
+    {
+      "command": "switchTopic",
+      "description": "切换话题 - 切换到指定话题，后续 chat 将使用该话题",
+      "parameters": {
+        "agentId": {
+          "type": "string",
+          "required": true,
+          "description": "Agent 标识符"
+        },
+        "topicId": {
+          "type": "string",
+          "required": true,
+          "description": "话题 ID"
+        }
+      },
+      "output": {
+        "status": "string",
+        "topicId": "string",
+        "title": "string",
+        "message": "string"
+      }
+    },
+    {
+      "command": "consult",
+      "description": "专家咨询模式 - 只读分析，返回报告和 Diff 预览，不改动物理文件",
+      "parameters": {
+        "query": {
+          "type": "string",
+          "required": true,
+          "description": "架构指令或分析查询"
+        },
+        "targetFile": {
+          "type": "string",
+          "required": true,
+          "description": "需要分析的目标文件路径（相对于 VCP 根目录）"
+        }
+      },
+      "output": {
+        "status": "string",
+        "report": "string",
+        "diff": "string",
+        "safetyScore": "number",
+        "safetyStatus": "string",
+        "issues": "array",
+        "duration": "number"
+      }
+    },
+    {
+      "command": "apply",
+      "description": "物理进化模式 - 授权 OpenCode 直接修改系统源码。会自动进行安全检查",
+      "parameters": {
+        "query": {
+          "type": "string",
+          "required": true,
+          "description": "架构指令"
+        },
+        "targetFile": {
+          "type": "string",
+          "required": true,
+          "description": "需要修改的目标文件路径"
+        },
+        "options": {
+          "type": "object",
+          "description": "选项对象",
+          "properties": {
+            "autoBackup": {
+              "type": "boolean",
+              "default": true,
+              "description": "是否自动创建 .bak 备份"
+            },
+            "skipSafetyCheck": {
+              "type": "boolean",
+              "default": false,
+              "description": "是否跳过安全检查（不推荐）"
+            }
+          }
+        }
+      },
+      "output": {
+        "status": "string",
+        "filesModified": "array",
+        "commitLog": "string",
+        "rollbackAvailable": "boolean",
+        "safetyReport": "object",
+        "message": "string",
+        "duration": "number"
+      }
+    },
+    {
+      "command": "initialize",
+      "description": "知识同步 - 让 OpenCode 重新扫描并理解 VCP 系统结构",
+      "parameters": {
+        "targetFile": {
+          "type": "string",
+          "default": "E:/VCP/VCPToolBox_new",
+          "description": "VCP 系统根目录路径"
+        }
+      },
+      "output": {
+        "status": "string",
+        "agentsMd": "string",
+        "indexedFiles": "number",
+        "duration": "number"
+      }
+    }
+  ],
+  "lifecycle": {
+    "onUnload": "cleanup"
+  },
+  "safety": {
+    "requiresConfirmation": true,
+    "backupDirectory": ".opencode_backups",
+    "maxFileSize": "10MB",
+    "allowedExtensions": [".js", ".json", ".md", ".html", ".css", ".ts", ".py", ".txt", ".yaml", ".yml", ".env", ".sh", ".bat", ".ps1"]
+  },
+  "communication": {
+    "protocol": "stdio",
+    "timeout": 600000
+  }
+}
