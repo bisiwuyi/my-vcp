@@ -1,5 +1,10 @@
-# VCP 文件管理与系统控制工具箱能力收纳
+# VCP 文件管理与系统控制工具箱能力收纳 [v2.1 2026-03-27 最新版]
 这里收纳了文件搜索、读写、批量操作及系统命令行工具。
+
+### 🚨 全局强制规则
+- 后端/服务器场景：所有文件操作必须使用 `ServerFileOperator` 作为 `tool_name`，禁止使用旧版 `FileOperator`
+- 前端/本地场景：可继续使用 `FileOperator` 作为 `tool_name`
+- 若提示词中同时注入 `{{VCPServerFileOperator}}` 变量，其规则优先级高于本文档
 
 ## 1. PowerShell 命令行工具 (PowerShellExecutor)
 直接调用并获取运行结果。支持 VCP-CLI (前端) 和紧凑的后端命令行。
