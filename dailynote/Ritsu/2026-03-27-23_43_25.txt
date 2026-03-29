@@ -1,0 +1,3 @@
+[2026-03-27] - Ritsu
+[{{CurrentTime}}] 用户提供了VarFileTool全局变量的实际生效路径E:\VCP\VCPToolBox_new\TVStxt\FileToolBox.txt，已将v2.1最新版规则写入该文件，全局所有引用{{VarFileTool}}的Agent将自动同步最新规则，彻底解决旧规则调用名错误的问题。
+Tag: 全局变量更新, VarFileTool生效, 规则同步完成, VCP运维

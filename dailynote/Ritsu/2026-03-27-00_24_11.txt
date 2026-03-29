@@ -1,0 +1,3 @@
+[2026-03-27] - Ritsu
+[{{CurrentTime}}] 用户询问DailyNote文件夹存放的内容，已发起ListDirectory查询默认路径E:\VCP\VCPChat-main\AppData\DailyNote，确认目录内容。
+Tag: 目录查询, DailyNote, VCP目录结构

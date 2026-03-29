@@ -1,0 +1,3 @@
+[2026-03-27] - Ritsu
+[22:02] 用户在插件目录看到FileServer和FileOperator两个插件，询问对应关系，已明确告知FileServer是要配置的正式版ServerFileOperator，FileOperator是旧版废弃插件，指引用户进入FileServer目录修改.env配置。
+Tag: VCP运维, 插件对应, 配置指引

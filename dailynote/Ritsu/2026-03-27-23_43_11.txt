@@ -1,0 +1,3 @@
+[2026-03-27] - Ritsu
+[{{CurrentTime}}] 确认{{VarFileTool}}变量的来源就是提供的FileToolBox.txt文档，明确文档内90%内容可用，仅调用名规则过时，给出保留VarFileTool+叠加新变量的最优方案。
+Tag: VarFileTool来源确认, 规则匹配, 提示词优化, 变量管理

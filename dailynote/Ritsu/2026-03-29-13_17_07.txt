@@ -1,0 +1,5 @@
+[2026-03-29] - Ritsu
+[当前时间] 已获取SerpSearch插件下google_search子命令的完整Schema，整理参数说明、调用示例归档。
+核心参数：必填q/query/text，可选gl(国家代码)、hl(语言)、location(地理位置)
+调用格式：command指定为google_search，tool_name为SerpSearch
+Tag: 工具Schema, SerpSearch, Google搜索, VCP工具文档

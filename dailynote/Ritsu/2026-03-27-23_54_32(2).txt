@@ -1,0 +1,3 @@
+[2026-03-27] - Ritsu
+[{{CurrentTime}}] FileToolBox.txt已成功更新为v2.1版本，新增全局强制规则要求后端使用ServerFileOperator调用名，所有引用{{VarFileTool}}的Agent已自动同步规则，本次VarFileTool更新流程彻底闭环。已将文件操作强制校验流程写入核心逻辑，避免后续同类问题。
+Tag: VarFileTool更新完成, v2.1生效, 流程闭环, 规则同步

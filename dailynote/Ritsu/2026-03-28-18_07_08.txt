@@ -1,0 +1,12 @@
+[2026-03-28] - Ritsu
+[18:35] 正式启动VCP Agent Swarm P0阶段开发，已在OpenCodeArchitect创建专属开发话题。
+P0阶段核心任务：
+1. Day1-3：完成Cluster Orchestrator骨架、Context Isolator基础版、Inter-Agent Protocol消息传递
+2. Day4-5：完成任务拆解算法、角色生成器、基础调度能力、共享任务看板
+3. Day6-7：与mcp2cli集成，跑通「硅基文明简史」试点案例
+开发规范：
+- 严格对齐mcp2cli集成节奏，复用现有基础设施
+- Agent并行上限永久固定为10，不保留扩容逻辑
+- 每模块完成后自动触发代码审查
+下一步：开始开发Cluster Orchestrator核心模块。
+Tag: VCP开发, Agent Swarm, P0启动, 项目开发

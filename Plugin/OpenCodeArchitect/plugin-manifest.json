@@ -1,8 +1,8 @@
 {
   "name": "OpenCodeArchitect",
   "displayName": "OpenCode 系统进化桥接器",
-  "description": "VCP 2.0 自我进化回路 - Ritsu 与 OpenCode 的协作桥梁。支持多 Agent 多话题管理，每个话题独立的 OpenCode 会话，话题间完全隔离。",
-  "version": "2.0.1",
+  "description": "VCP 2.0 自我进化回路 - Ritsu 与 OpenCode 的协作桥梁。所有操作通过自然语言 chat 对话完成，支持多 Agent 多话题管理。",
+  "version": "2.2.0",
   "pluginType": "synchronous",
   "entryPoint": {
     "command": "node index.js"
@@ -60,6 +60,76 @@
       "output": {
         "status": "string",
         "message": "string"
+      }
+    },
+    {
+      "command": "pause",
+      "description": "暂停任务 - 暂停运行中的 OpenCode 任务（通过 SIGSTOP 信号）",
+      "parameters": {
+        "taskId": {
+          "type": "string",
+          "description": "任务 ID（从 taskStates 获取）"
+        },
+        "pid": {
+          "type": "number",
+          "description": "进程 PID（二选一）"
+        }
+      },
+      "output": {
+        "status": "string",
+        "taskId": "string",
+        "pid": "number",
+        "message": "string"
+      }
+    },
+    {
+      "command": "resume",
+      "description": "恢复任务 - 恢复暂停的 OpenCode 任务（通过 SIGCONT 信号）",
+      "parameters": {
+        "taskId": {
+          "type": "string",
+          "description": "任务 ID"
+        },
+        "pid": {
+          "type": "number",
+          "description": "进程 PID（二选一）"
+        }
+      },
+      "output": {
+        "status": "string",
+        "taskId": "string",
+        "pid": "number",
+        "message": "string"
+      }
+    },
+    {
+      "command": "getTaskStatus",
+      "description": "获取任务状态 - 获取指定任务的状态信息",
+      "parameters": {
+        "taskId": {
+          "type": "string",
+          "required": true,
+          "description": "任务 ID"
+        }
+      },
+      "output": {
+        "status": "string",
+        "task": "object"
+      }
+    },
+    {
+      "command": "listTasks",
+      "description": "列出任务 - 列出所有运行中的任务",
+      "parameters": {
+        "agentId": {
+          "type": "string",
+          "description": "Agent 标识符（可选，不指定则列出所有）"
+        }
+      },
+      "output": {
+        "status": "string",
+        "tasks": "array",
+        "count": "number"
       }
     },
     {
@@ -157,89 +227,6 @@
         "topicId": "string",
         "title": "string",
         "message": "string"
-      }
-    },
-    {
-      "command": "consult",
-      "description": "专家咨询模式 - 只读分析，返回报告和 Diff 预览，不改动物理文件",
-      "parameters": {
-        "query": {
-          "type": "string",
-          "required": true,
-          "description": "架构指令或分析查询"
-        },
-        "targetFile": {
-          "type": "string",
-          "required": true,
-          "description": "需要分析的目标文件路径（相对于 VCP 根目录）"
-        }
-      },
-      "output": {
-        "status": "string",
-        "report": "string",
-        "diff": "string",
-        "safetyScore": "number",
-        "safetyStatus": "string",
-        "issues": "array",
-        "duration": "number"
-      }
-    },
-    {
-      "command": "apply",
-      "description": "物理进化模式 - 授权 OpenCode 直接修改系统源码。会自动进行安全检查",
-      "parameters": {
-        "query": {
-          "type": "string",
-          "required": true,
-          "description": "架构指令"
-        },
-        "targetFile": {
-          "type": "string",
-          "required": true,
-          "description": "需要修改的目标文件路径"
-        },
-        "options": {
-          "type": "object",
-          "description": "选项对象",
-          "properties": {
-            "autoBackup": {
-              "type": "boolean",
-              "default": true,
-              "description": "是否自动创建 .bak 备份"
-            },
-            "skipSafetyCheck": {
-              "type": "boolean",
-              "default": false,
-              "description": "是否跳过安全检查（不推荐）"
-            }
-          }
-        }
-      },
-      "output": {
-        "status": "string",
-        "filesModified": "array",
-        "commitLog": "string",
-        "rollbackAvailable": "boolean",
-        "safetyReport": "object",
-        "message": "string",
-        "duration": "number"
-      }
-    },
-    {
-      "command": "initialize",
-      "description": "知识同步 - 让 OpenCode 重新扫描并理解 VCP 系统结构",
-      "parameters": {
-        "targetFile": {
-          "type": "string",
-          "default": "E:/VCP/VCPToolBox_new",
-          "description": "VCP 系统根目录路径"
-        }
-      },
-      "output": {
-        "status": "string",
-        "agentsMd": "string",
-        "indexedFiles": "number",
-        "duration": "number"
       }
     }
   ],

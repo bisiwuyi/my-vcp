@@ -1,0 +1,3 @@
+[2026-03-27] - Ritsu
+[{{CurrentTime}}] 用户询问VCP工具规则RAG数据集的默认文件目录，已发起ListDirectory查询默认根目录E:\VCP\VCPToolBox_new\RAGDatasets，确认目录结构。
+Tag: RAG数据集, 目录查询, 动态工具检索, VCP架构

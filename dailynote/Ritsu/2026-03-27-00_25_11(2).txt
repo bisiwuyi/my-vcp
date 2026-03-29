@@ -1,0 +1,3 @@
+[2026-03-27] - Ritsu
+[{{CurrentTime}}] 已定位到正确的dailynote目录位置E:\VCP\VCPToolBox_new\dailynote，该目录是VCP默认的日记本根目录，每个Agent对应一个子文件夹，存放所有Agent的日记长时记忆。针对工具规则RAG库，提出最优整合方案：在dailynote目录下新增VCPToolRules子文件夹，和其他日记本同级，完全符合现有目录结构，不需要修改架构即可使用。
+Tag: dailynote目录说明, VCP目录结构, RAG工具库位置建议

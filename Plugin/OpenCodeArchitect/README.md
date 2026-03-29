@@ -7,9 +7,9 @@ Ritsu_Action: 需同步到记忆
 
 # OpenCodeArchitect 插件开发规范
 
-**版本**: v2.0.1
+**版本**: v2.2.0
 **创建日期**: 2026-03-27
-**最后更新**: 2026-03-28
+**最后更新**: 2026-03-29
 
 ## 一、 插件核心定位
 
@@ -271,13 +271,15 @@ await OpenCodeArchitect.closeTopic(agentId, topicId)
 立即关闭 OpenCode 进程，终止当前对话。
 
 ```javascript
-await OpenCodeArchitect.interrupt(pid, activeProcesses)
+await OpenCodeArchitect.interrupt(pid)
 ```
 
 **输入参数**:
 | 参数 | 类型 | 必填 | 描述 |
 |------|------|------|------|
 | pid | number | ✅ | 要中断的进程 PID |
+
+> **注意**: `activeProcesses` 已改为内部实例属性，不再需要外部传递。
 
 **输出结果**:
 ```json
@@ -292,32 +294,102 @@ await OpenCodeArchitect.interrupt(pid, activeProcesses)
 
 ---
 
-### 3.8 consult - 专家咨询模式
+### 3.8 pause - 暂停任务
 
-只读分析，返回报告和 Diff 预览，不改动物理文件。
+暂停运行中的任务（通过 SIGSTOP/SIGCONT 信号）。
 
 ```javascript
-await OpenCodeArchitect.consult(query, targetFile)
+await OpenCodeArchitect.pause(taskId)   // 或 pid
+```
+
+**输入参数**:
+| 参数 | 类型 | 必填 | 描述 |
+|------|------|------|------|
+| taskId | string | ❌ | 任务 ID（二选一） |
+| pid | number | ❌ | 进程 PID（二选一） |
+
+**输出结果**:
+```json
+{
+  "status": "success",
+  "result": {
+    "taskId": "task-xxx",
+    "pid": 12345,
+    "message": "已暂停任务 task-xxx"
+  }
+}
 ```
 
 ---
 
-### 3.9 apply - 物理进化模式
+### 3.9 resume - 恢复任务
 
-授权 OpenCode 直接修改系统源码，自动进行安全检查。
+恢复暂停的任务。
 
 ```javascript
-await OpenCodeArchitect.apply(query, targetFile, options)
+await OpenCodeArchitect.resume(taskId)  // 或 pid
+```
+
+**输出结果**:
+```json
+{
+  "status": "success",
+  "result": {
+    "taskId": "task-xxx",
+    "pid": 12345,
+    "message": "已恢复任务 task-xxx"
+  }
+}
 ```
 
 ---
 
-### 3.10 initialize - 知识同步
+### 3.10 getTaskStatus - 获取任务状态
 
-让 OpenCode 重新扫描并理解 VCP 系统结构。
+获取指定任务的状态信息。
 
 ```javascript
-await OpenCodeArchitect.initialize(vcpPath)
+await OpenCodeArchitect.getTaskStatus(taskId)
+```
+
+**输出结果**:
+```json
+{
+  "status": "success",
+  "result": {
+    "task": {
+      "taskId": "task-xxx",
+      "status": "running|paused|completed|failed|timeout",
+      "pid": 12345,
+      "agentId": "ritsu",
+      "topicId": "topic-xxx",
+      "startTime": 1743120000000,
+      "elapsed": 5000,
+      "progress": { "stage": "分析中", "stageIndex": 2 }
+    }
+  }
+}
+```
+
+---
+
+### 3.11 listTasks - 列出任务
+
+列出所有运行中的任务。
+
+```javascript
+await OpenCodeArchitect.listTasks(agentId)  // agentId 可选
+```
+
+**输出结果**:
+```json
+{
+  "status": "success",
+  "result": {
+    "tasks": [...],
+    "count": 3
+  }
+}
 ```
 
 ---
@@ -402,16 +474,32 @@ Ritsu: 已关闭话题 "server优化"
 
 ```
 Plugin/OpenCodeArchitect/
-├── plugin-manifest.json    # 插件契约 (v2.0.0)
-├── index.js              # 主入口 (多会话管理)
+├── plugin-manifest.json    # 插件契约 (v2.1.0)
+├── index.js              # 主入口 (1721行，含所有优化)
 ├── diff-analyzer.js      # Diff 安全分析器
 ├── PROMPTS.md            # Ritsu Diff 分析协议
-└── README.md             # 本文档
+└── README.md             # 本文档 (546行)
 
 运行时文件：
 ├── .opencode_topics.json  # 话题元数据
 └── .opencode_session_*   # 各话题的 OpenCode session ID
 ```
+
+### 插件契约 (v2.1.0)
+
+| 命令 | 说明 |
+|------|------|
+| chat | 对话模式（核心，所有操作通过自然语言完成） |
+| createTopic | 创建话题 |
+| listTopics | 列出话题 |
+| getTopic | 获取话题详情 |
+| switchTopic | 切换话题 |
+| closeTopic | 关闭话题 |
+| interrupt | 中断模式 |
+| pause | 暂停任务 |
+| resume | 恢复任务 |
+| getTaskStatus | 获取任务状态 |
+| listTasks | 列出任务 |
 
 ## 七、 已知限制
 
@@ -422,6 +510,98 @@ Plugin/OpenCodeArchitect/
 | 超长上下文 | OpenCode 有上下文长度限制 |
 
 ## 八、 更新日志
+
+### v2.2.0 (2026-03-29) - 简化命令集
+
+#### 重大变更
+- 移除 `consult`、`apply`、`initialize` 三个专用命令
+- 所有操作统一通过 `chat` 对话模式完成
+- 通过自然语言描述即可完成分析、修改、知识同步等操作
+
+#### 保留命令 (11个)
+- chat、createTopic、listTopics、getTopic、switchTopic、closeTopic
+- interrupt、pause、resume、getTaskStatus、listTasks
+
+### v2.1.0 (2026-03-29) - P2 体验优化
+
+#### Bug 修复 (来自 v2.0.2)
+- **BUG #1 修复**: `title` 参数现在正确创建新话题和会话（之前只更新标题不创建会话，导致上下文污染）
+- **BUG #3 修复**: `sessionId` 现在无论新旧话题都会正确保存（之前只有 `isNewTopic=true` 时才保存）
+- **BUG #4 修复**: 添加自动重试机制（3次重试，间隔10秒），解决偶发错误导致任务中断
+- **ISSUE #8 修复**: `saveTopics()` 改为原子写入（临时文件+rename），避免多实例并发写入损坏数据
+- **ISSUE #10 修复**: `activeProcesses` 改为实例属性，避免进程追踪泄漏
+
+#### P1 重要优化
+
+##### P1-3: 任务进度实时反馈
+- 新增 `onProgress` 回调参数，支持长任务阶段性进度反馈
+- 进度阶段：初始化 → 分析中 → 生成报告 → 完成
+- 每15秒自动报告一次执行状态
+- 基于关键词（reading/analyzing/generating）的自动阶段检测
+
+##### P1-4: 标准化错误体系
+- 新增错误码枚举（ERROR_CODES），覆盖命令、文件、运行时、安全、进程、话题6大类
+- 新增 `formatError()` 和 `inferErrorCode()` 方法
+- 所有命令返回标准化错误结构：{ code, category, message, suggestion, details }
+- 所有错误响应包含时间戳
+
+##### P1-5: 自定义超时配置
+- timeout 参数现在正确传递并生效
+- 支持类型自动转换（字符串/数字）
+- 范围限制：30秒 ~ 10分钟
+
+##### P1-6: 残留报错过滤
+- 已关闭话题（closed）的残留响应不再返回给用户
+- 仅在后台日志记录，避免干扰当前会话
+
+#### P2 体验优化
+
+##### P2-1: 任务管理功能
+- 新增 `pause` 命令 - 暂停运行中的任务（通过 SIGSTOP/SIGCONT）
+- 新增 `resume` 命令 - 恢复暂停的任务
+- 新增 `getTaskStatus` 命令 - 获取指定任务的状态
+- 新增 `listTasks` 命令 - 列出所有任务
+- 新增 `taskStates` 实例属性追踪任务状态（running/paused/completed/failed/timeout）
+- Windows 平台使用 PowerShell 命令暂停/恢复进程
+- **注意**: 已更新 plugin-manifest.json 添加新命令定义
+
+#### P2-2: 分析结果缓存
+- 新增 `analysisCache` 实例属性存储分析结果
+- 缓存键基于：操作类型 + 文件路径 + 文件修改时间 + 查询内容哈希
+- 默认 TTL 30分钟
+- 新增 `getAnalysisCacheKey()`、`getCachedResult()`、`setCachedResult()`、`clearCache()` 方法
+- 缓存命中时返回 `{cached: true, cacheAge: ...}`
+
+#### P2-3: 多格式导出
+- 新增 `exportReport()` 方法支持导出为 JSON/Markdown/Text 格式
+- 新增 `exportAsJSON()`、`exportAsMarkdown()`、`exportAsText()` 导出方法
+- 支持自定义文件名和元数据开关
+
+#### P2-4: 资源占用监控
+- chat 响应中新增 `resourceUsage` 对象
+- 包含：startTime、endTime、memoryUsage、cpuUsage
+- 可用于成本核算和性能分析
+
+#### 标准化错误码体系
+所有错误响应现在包含标准字段：
+```json
+{
+  "status": "error",
+  "code": "E1001",
+  "category": "command",
+  "message": "未知命令",
+  "suggestion": "使用支持的命令列表...",
+  "timestamp": "2026-03-29T..."
+}
+```
+
+错误码分类：
+- `E1xxx` - 命令/参数错误
+- `E2xxx` - 文件操作错误
+- `E3xxx` - OpenCode 运行时错误
+- `E4xxx` - 安全错误
+- `E5xxx` - 进程管理错误
+- `E6xxx` - 话题管理错误
 
 ### v2.0.1 (2026-03-28) - Bug 修复
 - 修复：所有命令输出格式统一为 `{ status, result }` 以符合 Plugin.js 契约

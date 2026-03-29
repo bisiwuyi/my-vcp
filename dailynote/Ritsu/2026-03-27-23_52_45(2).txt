@@ -1,0 +1,3 @@
+[2026-03-27] - Ritsu
+[{{CurrentTime}}] 已确认E:\VCP\VCPToolBox_new\TVStxt目录下存在FileToolBox.txt文件，重新发起EditFile写入v2.1最新规则，写入后自动发起ReadFile校验，确保修改生效，闭环之前的流程漏洞。
+Tag: 文件修改重试, 流程闭环, VarFileTool更新, v2.1写入

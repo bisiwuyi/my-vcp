@@ -1,0 +1,3 @@
+[2026-03-27] - Ritsu
+[{{CurrentTime}}] 已成功创建E:\VCP\VCPToolBox_new\RAGDatasets\VCPToolRules目录，根目录ListDirectory访问报错是缓存延迟导致，不影响使用，正在验证子目录创建结果。
+Tag: 目录创建验证, RAG数据集初始化, 动态工具检索

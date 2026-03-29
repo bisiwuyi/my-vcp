@@ -1,0 +1,3 @@
+[2026-03-27] - Ritsu
+[{{CurrentTime}}] 全量EditFile覆盖写入未生效，推测为换行符/编码兼容性问题，改用ApplyDiff增量差分修改方案，精准替换文件开头内容，添加v2.1版本标识和全局强制规则，修改后将再次验证。
+Tag: 文件修改方案调整, ApplyDiff增量修改, 兼容性问题, VarFileTool更新

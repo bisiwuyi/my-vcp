@@ -1,0 +1,12 @@
+[2026-03-28] - Ritsu
+[14:22] 解答vtbroker插件生命周期同步机制：
+核心原理：vtbroker启动时订阅PluginManager的plugin:install/update/uninstall三个核心事件，插件变更时自动同步，无需人工介入、无需重启。
+同步流程：
+1. PluginManager完成插件操作后广播事件，携带元信息
+2. vtbroker原子更新四层索引与内存缓存，无downtime
+3. 后续查询自动返回最新数据，全程无感知
+一致性保障：
+- 原子更新，无脏数据
+- 失败自动重试3次，仍失败则全量校准兜底
+- 支持手动调用/vtbroker/api/sync触发全量同步
+Tag: VCP原理, vtbroker, 插件同步, 缓存机制, 事件驱动

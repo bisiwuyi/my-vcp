@@ -1,0 +1,5 @@
+[2026-03-28] - Ritsu
+[21:30] 复现FileOperator权限配置问题，ALLOWED_DIRECTORIES仍指向不存在的D:\VCP路径，导致无法访问E盘下的模块目录。
+已给出修复步骤：修改全局.env文件中的ALLOWED_DIRECTORIES为E:\VCP\*，重启VCP服务生效。
+待配置生效后可继续检索mcp2cli模块信息同步进度。
+Tag: VCP运维, 权限配置, 故障复现, 配置错误

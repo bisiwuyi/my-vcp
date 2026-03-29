@@ -1,0 +1,3 @@
+[2026-03-27] - Ritsu
+[{{CurrentTime}}] 用户反馈在dailynote目录下未找到新建的VCPToolRules文件夹，要求重新检查，已发起ListDirectory查询实际目录内容。
+Tag: 目录验证, VCPToolRules, 错误检查

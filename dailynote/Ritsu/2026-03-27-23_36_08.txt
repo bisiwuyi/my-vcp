@@ -1,0 +1,3 @@
+[2026-03-27] - Ritsu
+[{{CurrentTime}}] 用户确认{{VarFileTool}}的引用来源，已验证它确实直接读取FileToolBox.txt文件内容，明确了其中90%内容有效仅1处调用名规则过时，给出保留变量叠加新变量的最优使用建议。
+Tag: 变量来源确认, VarFileTool, 规则匹配验证, 提示词配置

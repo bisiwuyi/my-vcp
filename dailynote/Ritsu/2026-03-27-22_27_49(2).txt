@@ -1,0 +1,3 @@
+[2026-03-27] - Ritsu
+[{{CurrentTime}}] 收到用户的工具调用规则修正，明确文件操作工具必须使用ServerFileOperator作为tool_name，不得使用FileOperator，已同步更新工具调用映射表，修正之前的调用错误，后续将严格遵循该规则。
+Tag: 规则修正, 工具调用, ServerFileOperator, 运维记录

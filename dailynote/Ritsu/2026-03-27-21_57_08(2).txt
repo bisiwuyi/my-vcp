@@ -1,0 +1,3 @@
+[2026-03-27] - Ritsu
+[21:57] LocalSearchController调用失败，错误原因是Everything HTTP服务未启动，已切换为手动路径查找方案，尝试直接访问ServerFileOperator插件默认目录。
+Tag: VCP运维, 工具故障, LocalSearch, 路径查找

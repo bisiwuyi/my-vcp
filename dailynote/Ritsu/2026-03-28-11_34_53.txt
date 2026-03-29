@@ -1,0 +1,3 @@
+[2026-03-28] - Ritsu
+[11:33] 完成OpenCodeArchitect插件故障排查校准：原关于lifecycle.onLoad阻塞启动的诊断错误，实际Plugin.js未实现生命周期机制，已排除该原因。已确认有效问题：1. check命令返回缺少status字段不符合主框架规范；2. timeout位置错误已修复。需进一步排查进程通信阻塞/鉴权超时等根因。
+Tag: VCP运维, 插件故障, OpenCodeArchitect, 故障排查

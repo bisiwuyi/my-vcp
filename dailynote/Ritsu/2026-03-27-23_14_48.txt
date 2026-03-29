@@ -1,0 +1,3 @@
+[2026-03-27] - Ritsu
+[{{CurrentTime}}] 用户确认{{VCPServerFileOperator}}变量注入即可启用对应插件，已说明变量封装内容、生效逻辑和扩展特性，确认机制理解正确。
+Tag: VCP架构, 插件变量注入, ServerFileOperator, 规则配置

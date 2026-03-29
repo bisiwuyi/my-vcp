@@ -1,0 +1,3 @@
+[2026-03-27] - Ritsu
+[{{CurrentTime}}] 默认RAGDatasets目录不存在，已自动创建标准目录结构：E:\VCP\VCPToolBox_new\RAGDatasets\VCPToolRules，用于存放工具规则RAG数据集，创建后验证目录存在。
+Tag: 目录创建, RAG数据集, 动态工具检索, 路径初始化

@@ -433,6 +433,31 @@ async function replaceOtherVariables(text, model, role, context) {
             processedText = processedText.replaceAll('{{VCPAllTools}}', allVcpToolsString);
         }
 
+        // --- 工具发现流程提示词 (渐进式披露) ---
+        if (processedText.includes('{{VCPToolDiscovery}}')) {
+            const toolDiscoveryPrompt = `## 【工具发现与使用】
+
+可用工具分类：search（搜索，15个）、file_ops（文件操作，20个）、code（代码，9个）、knowledge（知识检索，5个）、collaboration（通讯协作，2个）、uncategorized（未分类，13个）。
+
+1. **获取某分类下的工具列表**（将 \{category_id\} 替换为分类ID）
+   <<<[TOOL_REQUEST]>>>
+   tool_name:「始」vtbroker_list_tools「末」,
+   category_id:「始」\{category_id\}「末」
+   <<<[END_TOOL_REQUEST]>>>
+
+2. **获取工具调用格式**（将 \{tool_id\} 替换为工具ID，如 tavilysearch_tavilysearch）
+   <<<[TOOL_REQUEST]>>>
+   tool_name:「始」vtbroker_get_tool_schema「末」,
+   tool_id:「始」\{tool_id\}「末」
+   <<<[END_TOOL_REQUEST]>>>
+
+3. **执行实际工具**
+   根据步骤2获取的调用格式，通过标准 VCP 工具块执行
+
+【提示】使用 vtbroker 工具按需获取更多信息。`;
+            processedText = processedText.replaceAll('{{VCPToolDiscovery}}', toolDiscoveryPrompt);
+        }
+
         if (process.env.PORT) {
             processedText = processedText.replaceAll('{{Port}}', process.env.PORT);
         }

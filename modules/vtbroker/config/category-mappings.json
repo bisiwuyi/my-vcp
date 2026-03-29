@@ -1,0 +1,128 @@
+{
+    "version": "1.0",
+    "description": "VTPBroker 工具分类映射配置文件",
+    "note": "此文件中的配置会与 category-mapper.js 中的硬编码默认值合并，文件中的配置优先",
+    "categories": [
+        {
+            "id": "search",
+            "name": "搜索工具",
+            "desc": "用于在互联网或数据库中搜索信息",
+            "keywords": ["搜索引擎", "搜索工具", "互联网搜索", "网络搜索", "论文搜索", "学术搜索"]
+        },
+        {
+            "id": "image_gen",
+            "name": "图像生成",
+            "desc": "生成图片或编辑图像",
+            "keywords": ["图像生成", "图片生成", "文生图", "图生图", "AI绘画", "AI画图", "comfyui", "stable diffusion"]
+        },
+        {
+            "id": "video_gen",
+            "name": "视频生成",
+            "desc": "生成视频内容",
+            "keywords": ["视频生成", "视频合成", "movie", "clip"]
+        },
+        {
+            "id": "file_ops",
+            "name": "文件操作",
+            "desc": "读取、写入、搜索本地文件",
+            "keywords": ["文件操作", "文件管理", "本地文件", "文件搜索", "文件传输"]
+        },
+        {
+            "id": "code",
+            "name": "代码工具",
+            "desc": "代码搜索、项目分析",
+            "keywords": ["代码分析", "代码搜索", "项目分析", "代码审查", "rust", "python代码"]
+        },
+        {
+            "id": "collaboration",
+            "name": "通讯协作",
+            "desc": "多Agent协作、消息推送",
+            "keywords": ["Agent通讯", "多Agent", "协作", "消息推送", "通知"]
+        },
+        {
+            "id": "knowledge",
+            "name": "知识检索",
+            "desc": "RAG、日记、知识库查询",
+            "keywords": ["知识库", "RAG", "日记", "记忆", "向量检索", "语义搜索"]
+        },
+        {
+            "id": "life",
+            "name": "生活服务",
+            "desc": "天气、日程、提醒",
+            "keywords": ["天气预报", "日程管理", "闹钟提醒", "日程提醒"]
+        },
+        {
+            "id": "entertainment",
+            "name": "娱乐",
+            "desc": "音乐、游戏、占卜",
+            "keywords": ["音乐生成", "塔罗占卜", "游戏", "娱乐"]
+        }
+    ],
+    "mappings": {
+        "GoogleSearch": ["search"],
+        "SerpSearch": ["search"],
+        "TavilySearch": ["search"],
+        "ArxivDailyPapers": ["search"],
+        "CrossRefDailyPapers": ["search"],
+        "PubMedSearch": ["search"],
+        "DeepWikiVCP": ["search"],
+        "VSearch": ["search"],
+        "ServerSearchController": ["search"],
+        "KarakeepSearch": ["search"],
+        "FlashDeepSearch": ["search"],
+        "KEGGSearch": ["search"],
+        "BilibiliFetch": ["search"],
+        "ChromeBridge": ["search"],
+        "ComfyUIGen": ["image_gen"],
+        "NovelAIGen": ["image_gen"],
+        "DoubaoGen": ["image_gen"],
+        "DMXDoubaoGen": ["image_gen"],
+        "FluxGen": ["image_gen"],
+        "GeminiImageGen": ["image_gen"],
+        "QwenImageGen": ["image_gen"],
+        "WebUIGen": ["image_gen"],
+        "ZImageGen": ["image_gen"],
+        "ZImageGen2": ["image_gen"],
+        "ZImageTurboGen": ["image_gen"],
+        "ArtistMatcher": ["image_gen"],
+        "Wan2.1VideoGen": ["video_gen"],
+        "GrokVideoGen": ["video_gen"],
+        "FileServer": ["file_ops"],
+        "ServerFileOperator": ["file_ops"],
+        "FileTreeGenerator": ["file_ops"],
+        "FileListGenerator": ["file_ops"],
+        "UrlFetch": ["file_ops"],
+        "ServerCodeSearcher": ["code"],
+        "CodeSearcher": ["code"],
+        "ProjectAnalyst": ["code"],
+        "PaperReader": ["code"],
+        "AgentAssistant": ["collaboration"],
+        "AgentMessage": ["collaboration"],
+        "MagiAgent": ["collaboration"],
+        "VCPTavern": ["collaboration"],
+        "VCPLog": ["collaboration"],
+        "VCPToolBridge": ["collaboration"],
+        "ThoughtClusterManager": ["knowledge"],
+        "PowerShellExecutor": ["collaboration"],
+        "RAGDiaryPlugin": ["knowledge"],
+        "LightMemo": ["knowledge"],
+        "VCPForum": ["knowledge"],
+        "VCPForumOnline": ["knowledge"],
+        "WeatherReporter": ["life"],
+        "WeatherInfoNow": ["life"],
+        "ScheduleManager": ["life"],
+        "ScheduleBriefing": ["life"],
+        "Randomness": ["entertainment"],
+        "TarotDivination": ["entertainment"],
+        "SunoGen": ["entertainment"],
+        "AnimeFinder": ["entertainment"],
+        "SVCardFinder": ["entertainment"],
+        "JapaneseHelper": ["entertainment"]
+    },
+    "aliases": {
+        "googlesearch": "GoogleSearch",
+        "arxiv": "ArxivDailyPapers",
+        "codesearch": "CodeSearcher",
+        "fileoperator": "ServerFileOperator"
+    }
+}

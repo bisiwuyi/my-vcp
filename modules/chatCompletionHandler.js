@@ -541,6 +541,9 @@ class ChatCompletionHandler {
       }
       if (DEBUG_MODE) await writeDebugLog('LogAfterVariableProcessing', processedMessages);
 
+      // v2.0: 捕获 expandedAgentName 用于热度统计
+      const capturedAgentName = processingContext.expandedAgentName;
+
       // --- 媒体处理器 ---
       if (shouldProcessMedia) {
         if (shouldProcessMediaPlus) {
@@ -748,7 +751,8 @@ class ChatCompletionHandler {
         _refreshRagBlocksIfNeeded,
         fetchWithRetry,
         isToolResultError,
-        formatToolResult
+        formatToolResult,
+        agentContext: capturedAgentName
       };
 
       if (isUpstreamStreaming) {

@@ -1162,6 +1162,13 @@ async function initialize() {
     await pluginManager.loadPlugins();
     console.log('插件加载完成。');
 
+    // 初始化 VTP Broker (工具发现中间商)
+    console.log('初始化 VTP Broker...');
+    const VTPBroker = require('./modules/vtbroker');
+    const vtbroker = VTPBroker.getInstance();
+    vtbroker.initialize(pluginManager);
+    console.log(`VTP Broker 初始化完成，共 ${vtbroker.getTotalToolCount()} 个工具。`);
+
     console.log('开始初始化服务类插件...');
     // --- 关键顺序调整 ---
     // 必须先将 WebSocketServer 实例注入到 PluginManager，
@@ -1173,6 +1180,12 @@ async function initialize() {
     app.use('/admin_api', adminPanelRoutes);
     // 挂载 VCP 论坛 API 路由
     app.use('/admin_api/forum', forumApiRoutes);
+    
+    // 挂载 VTPBroker API 路由
+    const createVTPBrokerRouter = require('./routes/vtbroker');
+    app.use('/vtbroker/api', createVTPBrokerRouter());
+    console.log('VTPBroker API 路由已挂载于 /vtbroker/api');
+    
     console.log('服务类插件初始化完成，管理面板 API 路由和 VCP 论坛 API 路由已挂载。');
 
     // --- 新增：通用依赖注入 ---

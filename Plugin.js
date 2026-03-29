@@ -585,6 +585,7 @@ class PluginManager extends EventEmitter {
 
             this.buildVCPDescription();
             console.log(`[PluginManager] Plugin discovery finished. Loaded ${this.plugins.size} plugins.`);
+            this.emit('pluginsLoaded', { count: this.plugins.size });
         } catch (error) {
             if (error.code === 'ENOENT') console.error(`[PluginManager] Plugin directory ${PLUGIN_DIR} not found.`);
             else console.error('[PluginManager] Error reading plugin directory:', error);
@@ -1367,6 +1368,7 @@ class PluginManager extends EventEmitter {
                 console.log(`[PluginManager] Manifest file change detected ('${eventType}'). Hot-reloading plugins...`);
                 await this.loadPlugins();
                 console.log('[PluginManager] Hot-reload complete.');
+                this.emit('pluginsReloaded', { count: this.plugins.size, reason: eventType });
 
                 if (this.webSocketServer && typeof this.webSocketServer.broadcastToAdminPanel === 'function') {
                     this.webSocketServer.broadcastToAdminPanel({

@@ -184,7 +184,7 @@ class ToolExecutor {
    * 执行单个工具调用
    * @returns {Promise<{success: boolean, content: Array, error?: string, raw?: any}>}
    */
-  async execute(toolCall, clientIp, contextMessages = []) {
+  async execute(toolCall, clientIp, contextMessages = [], agentContext = null) {
     const { name, args, river, vref } = toolCall;
 
     // === river 上下文注入 ===
@@ -324,10 +324,14 @@ class ToolExecutor {
 
     // 检查插件是否存在
     if (!this.pluginManager.getPlugin(name)) {
+      // === VTPBroker 处理 ===
+      if (name.startsWith('vtbroker_')) {
+        return this._executeVTPBroker(name, args, agentContext);
+      }
       return this._createErrorResult(name, `未找到名为 "${name}" 的插件`);
     }
 
-    // 执行插件
+    // === 原生插件执行 ===
     try {
       if (this.debugMode) console.log(`[ToolExecutor] Calling processToolCall for ${name} with args keys: ${Object.keys(args).join(', ')}`);
       const result = await this.pluginManager.processToolCall(name, args, clientIp);
@@ -340,9 +344,13 @@ class ToolExecutor {
   /**
    * 批量执行工具调用
    */
-  async executeAll(toolCalls, clientIp, contextMessages = []) {
+  async executeAll(toolCalls, clientIp, contextMessages = [], agentContext = null) {
+    if (!toolCalls || toolCalls.length === 0) {
+      return [];
+    }
+
     return Promise.all(
-      toolCalls.map(tc => this.execute(tc, clientIp, contextMessages))
+      toolCalls.map(tc => this.execute(tc, clientIp, contextMessages, agentContext))
     );
   }
 
@@ -411,6 +419,85 @@ class ToolExecutor {
       return { valid: false, message: 'tool_password 验证失败' };
     }
     return { valid: true };
+  }
+
+  /**
+   * 执行 VTPBroker 工具调用
+   */
+  _executeVTPBroker(name, args, agentContext = null) {
+    const VTPBroker = require('../vtbroker');
+    const broker = VTPBroker.getInstance();
+
+    if (!broker._initialized) {
+      return this._createErrorResult(name, 'VTPBroker 未初始化');
+    }
+
+    // 解析 vtbroker 命令
+    const command = name.replace('vtbroker_', '');
+
+    try {
+      let result;
+      switch (command) {
+        case 'list_categories':
+          result = broker.list_categories();
+          return {
+            success: true,
+            content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+            raw: result,
+            via: 'vtbroker'
+          };
+
+        case 'list_tools':
+          const categoryId = args.category_id || null;
+          result = broker.list_tools(categoryId);
+          return {
+            success: true,
+            content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+            raw: result,
+            via: 'vtbroker'
+          };
+
+        case 'get_tool_schema':
+          const toolId = args.tool_id;
+          if (!toolId) {
+            return this._createErrorResult(name, '缺少参数: tool_id');
+          }
+          result = broker.get_tool_schema(toolId, agentContext);
+          if (!result) {
+            return this._createErrorResult(name, `未找到工具: ${toolId}`);
+          }
+          return {
+            success: true,
+            content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+            raw: result,
+            via: 'vtbroker'
+          };
+
+        case 'get_agent_top_tools':
+          const agentAlias = args.agent_alias || null;
+          const limit = parseInt(args.limit) || 5;
+          result = broker.get_agent_top_tools(agentAlias, limit);
+          if (!result) {
+            return {
+              success: true,
+              content: [{ type: 'text', text: '暂无常用工具数据' }],
+              raw: null,
+              via: 'vtbroker'
+            };
+          }
+          return {
+            success: true,
+            content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+            raw: result,
+            via: 'vtbroker'
+          };
+
+        default:
+          return this._createErrorResult(name, `未知的 vtbroker 命令: ${command}`);
+      }
+    } catch (error) {
+      return this._createErrorResult(name, `VTPBroker 执行错误: ${error.message}`);
+    }
   }
 }
 

@@ -1,0 +1,3 @@
+[2026-03-27] - Ritsu
+[{{CurrentTime}}] 用户反馈dailynote目录下没有公共日记本文件夹，发起ListDirectory验证实际目录内容，确认实际结构。
+Tag: 目录验证, 知识库目录, 结构确认

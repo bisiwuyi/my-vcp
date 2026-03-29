@@ -1,0 +1,3 @@
+[2026-03-27] - Ritsu
+[{{CurrentTime}}] 用户完成权限配置后重新请求查看插件列表，调用ListDirectory读取E:\VCP\VCPToolBox_new\Plugin目录内容，等待返回结果。
+Tag: VCP运维, 插件列表, 权限验证
