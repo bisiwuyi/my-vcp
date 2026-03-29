@@ -846,7 +846,7 @@ param2:「始」value2「末」
 
 ```
 <<<[TOOL_REQUEST]>>>
-tool_name:「始」FileOperator「末」,
+tool_name:「始」ServerFileOperator「末」,
 command1:「始」CreateFile「末」,
 filePath1:「始」H:\MCP\VCPChat\test\mixed_command_test.txt「末」,
 

@@ -46,7 +46,7 @@ FileOperator是一个功能完整的文件系统操作插件，允许AI对受限
    参数：无
    调用格式：
    <<<[TOOL_REQUEST]>>>
-   tool_name:「始」FileOperator「末」,
+   tool_name:「始」ServerFileOperator「末」,
    command:「始」ListAllowedDirectories「末」
    <<<[END_TOOL_REQUEST]>>>
 
@@ -57,7 +57,7 @@ FileOperator是一个功能完整的文件系统操作插件，允许AI对受限
    - encoding (string, 可选, 默认utf8): 文本文件编码
    调用格式：
    <<<[TOOL_REQUEST]>>>
-   tool_name:「始」FileOperator「末」,
+   tool_name:「始」ServerFileOperator「末」,
    command:「始」ReadFile「末」,
    filePath:「始」/path/to/document.pdf「末」
    <<<[END_TOOL_REQUEST]>>>
@@ -68,7 +68,7 @@ FileOperator是一个功能完整的文件系统操作插件，允许AI对受限
    - url (string, 必需): 文件URL地址
    调用格式：
    <<<[TOOL_REQUEST]>>>
-   tool_name:「始」FileOperator「末」,
+   tool_name:「始」ServerFileOperator「末」,
    command:「始」WebReadFile「末」,
    url:「始」http://example.com/sample.jpg「末」
    <<<[END_TOOL_REQUEST]>>>
@@ -81,7 +81,7 @@ FileOperator是一个功能完整的文件系统操作插件，允许AI对受限
    - encoding (string, 可选, 默认utf8): 编码格式
    调用格式：
    <<<[TOOL_REQUEST]>>>
-   tool_name:「始」FileOperator「末」,
+   tool_name:「始」ServerFileOperator「末」,
    command:「始」WriteFile「末」,
    filePath:「始」/path/to/file.txt「末」,
    content:「始」这是要写入的内容。「末」
@@ -95,7 +95,7 @@ FileOperator是一个功能完整的文件系统操作插件，允许AI对受限
    - encoding (string, 可选, 默认utf8): 编码格式
    调用格式：
    <<<[TOOL_REQUEST]>>>
-   tool_name:「始」FileOperator「末」,
+   tool_name:「始」ServerFileOperator「末」,
    command:「始」AppendFile「末」,
    filePath:「始」/path/to/log.txt「末」,
    content:「始」新的日志条目「末」
@@ -109,7 +109,7 @@ FileOperator是一个功能完整的文件系统操作插件，允许AI对受限
    - encoding (string, 可选, 默认utf8): 编码格式
    调用格式：
    <<<[TOOL_REQUEST]>>>
-   tool_name:「始」FileOperator「末」,
+   tool_name:「始」ServerFileOperator「末」,
    command:「始」EditFile「末」,
    filePath:「始」/path/to/existing_file.txt「末」,
    content:「始」新内容「末」
@@ -122,7 +122,7 @@ FileOperator是一个功能完整的文件系统操作插件，允许AI对受限
    - showHidden (boolean, 可选, 默认false): 是否显示隐藏文件
    调用格式：
    <<<[TOOL_REQUEST]>>>
-   tool_name:「始」FileOperator「末」,
+   tool_name:「始」ServerFileOperator「末」,
    command:「始」ListDirectory「末」,
    directoryPath:「始」/path/to/directory「末」
    <<<[END_TOOL_REQUEST]>>>
@@ -133,7 +133,7 @@ FileOperator是一个功能完整的文件系统操作插件，允许AI对受限
    - filePath (string, 必需): 文件或目录绝对路径
    调用格式：
    <<<[TOOL_REQUEST]>>>
-   tool_name:「始」FileOperator「末」,
+   tool_name:「始」ServerFileOperator「末」,
    command:「始」FileInfo「末」,
    filePath:「始」/path/to/file.txt「末」
    <<<[END_TOOL_REQUEST]>>>
@@ -145,7 +145,7 @@ FileOperator是一个功能完整的文件系统操作插件，允许AI对受限
    - destinationPath (string, 必需): 目标文件绝对路径
    调用格式：
    <<<[TOOL_REQUEST]>>>
-   tool_name:「始」FileOperator「末」,
+   tool_name:「始」ServerFileOperator「末」,
    command:「始」CopyFile「末」,
    sourcePath:「始」/path/to/source.txt「末」,
    destinationPath:「始」/path/to/destination.txt「末」
@@ -158,7 +158,7 @@ FileOperator是一个功能完整的文件系统操作插件，允许AI对受限
     - destinationPath (string, 必需): 目标路径
     调用格式：
     <<<[TOOL_REQUEST]>>>
-    tool_name:「始」FileOperator「末」,
+    tool_name:「始」ServerFileOperator「末」,
     command:「始」MoveFile「末」,
     sourcePath:「始」/path/to/source.txt「末」,
     destinationPath:「始」/path/to/new_directory/source.txt「末」
@@ -171,7 +171,7 @@ FileOperator是一个功能完整的文件系统操作插件，允许AI对受限
     - destinationPath (string, 必需): 新文件路径
     调用格式：
     <<<[TOOL_REQUEST]>>>
-    tool_name:「始」FileOperator「末」,
+    tool_name:「始」ServerFileOperator「末」,
     command:「始」RenameFile「末」,
     sourcePath:「始」/path/to/old_name.txt「末」,
     destinationPath:「始」/path/to/new_name.txt「末」
@@ -183,7 +183,7 @@ FileOperator是一个功能完整的文件系统操作插件，允许AI对受限
     - filePath (string, 必需): 文件或目录绝对路径
     调用格式：
     <<<[TOOL_REQUEST]>>>
-    tool_name:「始」FileOperator「末」,
+    tool_name:「始」ServerFileOperator「末」,
     command:「始」DeleteFile「末」,
     filePath:「始」/path/to/deletable_file.txt「末」
     <<<[END_TOOL_REQUEST]>>>
@@ -194,7 +194,7 @@ FileOperator是一个功能完整的文件系统操作插件，允许AI对受限
     - directoryPath (string, 必需): 新目录绝对路径
     调用格式：
     <<<[TOOL_REQUEST]>>>
-    tool_name:「始」FileOperator「末」,
+    tool_name:「始」ServerFileOperator「末」,
     command:「始」CreateDirectory「末」,
     directoryPath:「始」/path/to/new_folder/sub_folder「末」
     <<<[END_TOOL_REQUEST]>>>
@@ -207,7 +207,7 @@ FileOperator是一个功能完整的文件系统操作插件，允许AI对受限
     - options (JSON string, 可选): 搜索选项
     调用格式：
     <<<[TOOL_REQUEST]>>>
-    tool_name:「始」FileOperator「末」,
+    tool_name:「始」ServerFileOperator「末」,
     command:「始」SearchFiles「末」,
     searchPath:「始」/path/to/search「末」,
     pattern:「始」*.log「末」,
@@ -221,7 +221,7 @@ FileOperator是一个功能完整的文件系统操作插件，允许AI对受限
     - downloadDir (string, 可选): 下载目录
     调用格式：
     <<<[TOOL_REQUEST]>>>
-    tool_name:「始」FileOperator「末」,
+    tool_name:「始」ServerFileOperator「末」,
     command:「始」DownloadFile「末」,
     url:「始」http://example.com/archive.zip「末」,
     downloadDir:「始」/path/to/download「末」
@@ -235,7 +235,7 @@ FileOperator是一个功能完整的文件系统操作插件，允许AI对受限
     - replaceString (string, 必需): 替换文本
     调用格式：
     <<<[TOOL_REQUEST]>>>
-    tool_name:「始」FileOperator「末」,
+    tool_name:「始」ServerFileOperator「末」,
     command:「始」ApplyDiff「末」,
     filePath:「始」/path/to/file.md「末」,
     searchString:「始」旧内容「末」,
@@ -250,7 +250,7 @@ FileOperator是一个功能完整的文件系统操作插件，允许AI对受限
     - replaceString (string, 必需): 替换文本
     调用格式：
     <<<[TOOL_REQUEST]>>>
-    tool_name:「始」FileOperator「末」,
+    tool_name:「始」ServerFileOperator「末」,
     command:「始」UpdateHistory「末」,
     filePath:「始」/path/to/history.json「末」,
     searchString:「始」旧内容「末」,
@@ -264,7 +264,7 @@ FileOperator是一个功能完整的文件系统操作插件，允许AI对受限
     - content (string, 必需): 初始内容
     调用格式：
     <<<[TOOL_REQUEST]>>>
-    tool_name:「始」FileOperator「末」,
+    tool_name:「始」ServerFileOperator「末」,
     command:「始」CreateCanvas「末」,
     fileName:「始」new_canvas.js「末」,
     content:「始」console.log('Hello, Canvas!');「末」
@@ -274,14 +274,14 @@ FileOperator是一个功能完整的文件系统操作插件，允许AI对受限
 
 示例1：读取PDF文件
 <<<[TOOL_REQUEST]>>>
-tool_name:「始」FileOperator「末」,
+tool_name:「始」ServerFileOperator「末」,
 command:「始」ReadFile「末」,
 filePath:「始」D:/documents/report.pdf「末」
 <<<[END_TOOL_REQUEST]>>>
 
 示例2：创建新文件
 <<<[TOOL_REQUEST]>>>
-tool_name:「始」FileOperator「末」,
+tool_name:「始」ServerFileOperator「末」,
 command:「始」WriteFile「末」,
 filePath:「始」D:/output/result.txt「末」,
 content:「始」处理结果：成功完成任务「末」
@@ -289,7 +289,7 @@ content:「始」处理结果：成功完成任务「末」
 
 示例3：搜索所有日志文件
 <<<[TOOL_REQUEST]>>>
-tool_name:「始」FileOperator「末」,
+tool_name:「始」ServerFileOperator「末」,
 command:「始」SearchFiles「末」,
 searchPath:「始」D:/logs「末」,
 pattern:「始」*.log「末」
@@ -297,7 +297,7 @@ pattern:「始」*.log「末」
 
 示例4：下载文件
 <<<[TOOL_REQUEST]>>>
-tool_name:「始」FileOperator「末」,
+tool_name:「始」ServerFileOperator「末」,
 command:「始」DownloadFile「末」,
 url:「始」http://example.com/data.zip「末」,
 downloadDir:「始」D:/downloads「末」

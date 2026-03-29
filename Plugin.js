@@ -8,7 +8,7 @@ const dotenv = require('dotenv'); // Ensures dotenv is available
 const FileFetcherServer = require('./FileFetcherServer.js');
 const express = require('express'); // For plugin API routing
 const chokidar = require('chokidar');
-const { getAuthCode } = require('./modules/captchaDecoder'); // 导入统一的解码函数
+const { getAuthCode } = require('./modules/captchaDecoder'); // 导入统一的解码函�?
 const ToolApprovalManager = require('./modules/toolApprovalManager');
 
 const PLUGIN_DIR = path.join(__dirname, 'Plugin');
@@ -18,16 +18,16 @@ const PREPROCESSOR_ORDER_FILE = path.join(__dirname, 'preprocessor_order.json');
 class PluginManager extends EventEmitter {
     constructor() {
         super();
-        this.plugins = new Map(); // 存储所有插件（本地和分布式）
+        this.plugins = new Map(); // 存储所有插件（本地和分布式�?
         this.staticPlaceholderValues = new Map();
         this.scheduledJobs = new Map();
         this.messagePreprocessors = new Map();
-        this.preprocessorOrder = []; // 新增：用于存储预处理器的最终加载顺序
+        this.preprocessorOrder = []; // 新增：用于存储预处理器的最终加载顺�?
         this.serviceModules = new Map();
         this.projectBasePath = null;
         this.individualPluginDescriptions = new Map(); // New map for individual descriptions
         this.debugMode = (process.env.DebugMode || "False").toLowerCase() === "true";
-        this.webSocketServer = null; // 为 WebSocketServer 实例占位
+        this.webSocketServer = null; // �?WebSocketServer 实例占位
         this.isReloading = false;
         this.reloadTimeout = null;
         this.vectorDBManager = null; // 修复：不再自己创建，等待注入
@@ -48,7 +48,7 @@ class PluginManager extends EventEmitter {
     async _getDecryptedAuthCode() {
         try {
             const authCodePath = path.join(__dirname, 'Plugin', 'UserAuth', 'code.bin');
-            // 使用正确的 getAuthCode 函数，并传递文件路径
+            // 使用正确�?getAuthCode 函数，并传递文件路�?
             return await getAuthCode(authCodePath);
         } catch (error) {
             if (this.debugMode) {
@@ -71,7 +71,7 @@ class PluginManager extends EventEmitter {
         if (pluginManifest.configSchema) {
             for (const key in pluginManifest.configSchema) {
                 const schemaEntry = pluginManifest.configSchema[key];
-                // 兼容两种格式：对象格式 { type: "string", ... } 和简单字符串格式 "string"
+                // 兼容两种格式：对象格�?{ type: "string", ... } 和简单字符串格式 "string"
                 const expectedType = (typeof schemaEntry === 'object' && schemaEntry !== null)
                     ? schemaEntry.type
                     : schemaEntry;
@@ -142,13 +142,13 @@ class PluginManager extends EventEmitter {
             let output = '';
             let errorOutput = '';
             let processExited = false;
-            const timeoutDuration = plugin.communication?.timeout || 60000; // 增加默认超时时间到 1 分钟
+            const timeoutDuration = plugin.communication?.timeout || 60000; // 增加默认超时时间�?1 分钟
 
             const timeoutId = setTimeout(() => {
                 if (!processExited) {
                     console.log(`[PluginManager] Static plugin "${plugin.name}" has completed its work cycle (${timeoutDuration}ms), terminating background process.`);
                     pluginProcess.kill('SIGKILL');
-                    // 超时不作为错误 - static 插件完成工作周期后返回已收集的输出
+                    // 超时不作为错�?- static 插件完成工作周期后返回已收集的输�?
                     resolve(output.trim());
                 }
             }, timeoutDuration);
@@ -167,7 +167,7 @@ class PluginManager extends EventEmitter {
                 processExited = true;
                 clearTimeout(timeoutId);
                 if (signal === 'SIGKILL') {
-                    // 被 SIGKILL 终止（超时），已经在 timeout 回调中 resolve 了，这里直接返回
+                    // �?SIGKILL 终止（超时），已经在 timeout 回调�?resolve 了，这里直接返回
                     return;
                 }
                 if (code !== 0) {
@@ -205,7 +205,7 @@ class PluginManager extends EventEmitter {
                 if (newValue !== null) {
                     try {
                         let trimmedValue = newValue.trim();
-                        // 尝试解析 JSON，支持 vcp_dynamic_fold 协议
+                        // 尝试解析 JSON，支�?vcp_dynamic_fold 协议
                         if (trimmedValue.startsWith('{')) {
                             const jsonObj = JSON.parse(trimmedValue);
                             if (jsonObj && jsonObj.vcp_dynamic_fold) {
@@ -415,8 +415,8 @@ class PluginManager extends EventEmitter {
 
     async loadPlugins() {
         console.log('[PluginManager] Starting plugin discovery...');
-        // 1. 清理现有插件状态
-        // 1.1 识别并关闭本地插件，保留分布式插件
+        // 1. 清理现有插件状�?
+        // 1.1 识别并关闭本地插件，保留分布式插�?
         const distributedPlugins = new Map();
         const localModulesToShutdown = new Set();
 
@@ -424,7 +424,7 @@ class PluginManager extends EventEmitter {
             if (manifest.isDistributed) {
                 distributedPlugins.set(name, manifest);
             } else {
-                // 收集本地插件模块以进行清理
+                // 收集本地插件模块以进行清�?
                 const preprocessor = this.messagePreprocessors.get(name);
                 if (preprocessor) localModulesToShutdown.add(preprocessor);
 
@@ -444,7 +444,7 @@ class PluginManager extends EventEmitter {
             }
         }
 
-        this.plugins = distributedPlugins; // 仅保留分布式插件，本地插件将被重新发现
+        this.plugins = distributedPlugins; // 仅保留分布式插件，本地插件将被重新发�?
         this.messagePreprocessors.clear();
         this.staticPlaceholderValues.clear();
         this.serviceModules.clear();
@@ -453,7 +453,7 @@ class PluginManager extends EventEmitter {
         const modulesToInitialize = [];
 
         try {
-            // 2. 发现并加载所有插件模块，但不初始化
+            // 2. 发现并加载所有插件模块，但不初始�?
             const pluginFolders = await fs.readdir(PLUGIN_DIR, { withFileTypes: true });
             for (const folder of pluginFolders) {
                 if (folder.isDirectory()) {
@@ -532,12 +532,12 @@ class PluginManager extends EventEmitter {
             this.preprocessorOrder = finalOrder;
             if (finalOrder.length > 0) console.log('[PluginManager] Final message preprocessor order: ' + finalOrder.join(' -> '));
 
-            // 5. VectorDBManager 应该已经由 server.js 初始化，这里不再重复初始化
+            // 5. VectorDBManager 应该已经�?server.js 初始化，这里不再重复初始�?
             if (!this.vectorDBManager) {
                 console.warn('[PluginManager] VectorDBManager not set! Plugins requiring it may fail.');
             }
 
-            // 6. 按顺序初始化所有模块
+            // 6. 按顺序初始化所有模�?
             const allModulesMap = new Map(modulesToInitialize.map(m => [m.manifest.name, m]));
             const initializationOrder = [...this.preprocessorOrder];
             allModulesMap.forEach((_, name) => {
@@ -650,7 +650,7 @@ class PluginManager extends EventEmitter {
         return this.serviceModules.get(name)?.module;
     }
 
-    // 新增：获取 VCPLog 插件的推送函数，供其他插件依赖注入
+    // 新增：获�?VCPLog 插件的推送函数，供其他插件依赖注�?
     getVCPLogFunctions() {
         const vcpLogModule = this.getServiceModule('VCPLog');
         const self = this;
@@ -671,9 +671,22 @@ class PluginManager extends EventEmitter {
     }
 
     async processToolCall(toolName, toolArgs, requestIp = null) {
-        const plugin = this.plugins.get(toolName);
+        const TOOL_NAME_ALIASES = {
+            'FileOperator': 'ServerFileOperator',
+            'fileoperator': 'ServerFileOperator'
+        };
+        
+        let resolvedToolName = toolName;
+        if (TOOL_NAME_ALIASES[toolName]) {
+            resolvedToolName = TOOL_NAME_ALIASES[toolName];
+            if (this.debugMode) {
+                console.log(`[PluginManager] Alias resolved: "${toolName}" -> "${resolvedToolName}"`);
+            }
+        }
+        
+        const plugin = this.plugins.get(resolvedToolName);
         if (!plugin) {
-            throw new Error(`[PluginManager] Plugin "${toolName}" not found for tool call.`);
+            throw new Error(`[PluginManager] Plugin "${resolvedToolName}" not found for tool call.`);
         }
 
         // Helper function to generate a timestamp string
@@ -701,7 +714,7 @@ class PluginManager extends EventEmitter {
             // delete pluginSpecificArgs.maid;
         }
 
-        // --- 预先拉取所有的异地文件，将其透明化 ---
+        // --- 预先拉取所有的异地文件，将其透明�?---
         // 逻辑漏洞修复：如果是分布式插件，则不进行预拉取，直接透传 file:// 协议，由分布式端自行处理
         if (!plugin.isDistributed) {
             const resolveArgsUrls = async (obj) => {
@@ -738,7 +751,7 @@ class PluginManager extends EventEmitter {
                 throw new Error(JSON.stringify({ plugin_error: `Failed to pre-fetch files: ${resolveError.message}` }));
             }
         }
-        // --- 透明化处理结束 ---
+        // --- 透明化处理结�?---
 
         // --- 人工审核逻辑 (新增) ---
         if (this.toolApprovalManager.shouldApprove(toolName)) {
@@ -795,7 +808,7 @@ class PluginManager extends EventEmitter {
                 }
                 if (this.debugMode) console.log(`[PluginManager] Processing distributed tool call for: ${toolName} on server ${plugin.serverId}`);
                 resultFromPlugin = await this.webSocketServer.executeDistributedTool(plugin.serverId, toolName, pluginSpecificArgs);
-                // 分布式工具的返回结果应该已经是JS对象了
+                // 分布式工具的返回结果应该已经是JS对象�?
             } else if (toolName === 'ChromeControl' && plugin.communication?.protocol === 'direct') {
                 // --- ChromeControl 特殊处理逻辑 ---
                 if (!this.webSocketServer) {
@@ -921,7 +934,7 @@ class PluginManager extends EventEmitter {
                 if (this.debugMode) console.warn(`[PluginManager] Could not get decrypted auth code for admin-required plugin: ${pluginName}. Execution will proceed without it.`);
             }
         }
-        // 将 requestIp 添加到环境变量
+        // �?requestIp 添加到环境变�?
         if (requestIp) {
             additionalEnv.VCP_REQUEST_IP = requestIp;
         }
@@ -1152,14 +1165,14 @@ class PluginManager extends EventEmitter {
                 if (manifest.hasApiRoutes && typeof module.registerApiRoutes === 'function') {
                     if (this.debugMode) console.log(`[PluginManager] Registering namespaced API routes for service plugin: ${name}`);
                     const pluginRouter = express.Router();
-                    // 将 router 和其他上下文传递给插件
+                    // �?router 和其他上下文传递给插件
                     module.registerApiRoutes(pluginRouter, pluginConfig, projectBasePath, this.webSocketServer);
-                    // 统一挂载到带命名空间的前缀下
+                    // 统一挂载到带命名空间的前缀�?
                     app.use(`/api/plugins/${name}`, pluginRouter);
                     if (this.debugMode) console.log(`[PluginManager] Mounted API routes for ${name} at /api/plugins/${name}`);
                 }
 
-                // VCPLog 特殊处理：注入 WebSocketServer 的广播函数
+                // VCPLog 特殊处理：注�?WebSocketServer 的广播函�?
                 if (name === 'VCPLog' && this.webSocketServer && typeof module.setBroadcastFunctions === 'function') {
                     if (typeof this.webSocketServer.broadcastVCPInfo === 'function') {
                         module.setBroadcastFunctions(this.webSocketServer.broadcastVCPInfo);
@@ -1187,7 +1200,7 @@ class PluginManager extends EventEmitter {
         }
         console.log('[PluginManager] Service plugins initialized.'); // Keep
     }
-    // --- 新增分布式插件管理方法 ---
+    // --- 新增分布式插件管理方�?---
     registerDistributedTools(serverId, tools) {
         if (this.debugMode) console.log(`[PluginManager] Registering ${tools.length} tools from distributed server: ${serverId}`);
         for (const toolManifest of tools) {
@@ -1226,7 +1239,7 @@ class PluginManager extends EventEmitter {
         }
         if (unregisteredCount > 0) {
             console.log(`[PluginManager] Unregistered ${unregisteredCount} tools from server ${serverId}.`);
-            // 注销后重建描述
+            // 注销后重建描�?
             this.buildVCPDescription();
         }
 
@@ -1299,7 +1312,7 @@ class PluginManager extends EventEmitter {
     }
 
     getPreprocessorOrder() {
-        // 返回所有已发现、已排序的预处理器信息
+        // 返回所有已发现、已排序的预处理器信�?
         return this.preprocessorOrder.map(name => {
             const manifest = this.plugins.get(name);
             return {
@@ -1348,13 +1361,13 @@ class PluginManager extends EventEmitter {
             this.isReloading = true;
 
             try {
-                // --- 精细化检查：判断是否需要触发重载 ---
+                // --- 精细化检查：判断是否需要触发重�?---
                 if (eventType !== 'unlink') {
                     try {
                         const content = await fs.readFile(filePath, 'utf-8');
                         const manifest = JSON.parse(content);
 
-                        // 如果是常驻内存型插件（direct 协议），禁止自动热重载以维持稳定性
+                        // 如果是常驻内存型插件（direct 协议），禁止自动热重载以维持稳定�?
                         if (manifest.communication?.protocol === 'direct') {
                             if (this.debugMode) console.log(`[PluginManager] Resident plugin manifest change detected (${manifest.name}), skipping auto-reload to maintain stability.`);
                             this.isReloading = false;
@@ -1388,7 +1401,7 @@ class PluginManager extends EventEmitter {
 
 const pluginManager = new PluginManager();
 
-// 新增：获取所有静态占位符值
+// 新增：获取所有静态占位符�?
 pluginManager.getAllPlaceholderValues = function () {
     const valuesMap = new Map();
     for (const [key, entry] of this.staticPlaceholderValues.entries()) {

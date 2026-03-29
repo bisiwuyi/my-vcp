@@ -288,6 +288,25 @@ class CategoryMapper {
     }
     
     /**
+     * 校验工具名并记录废弃警告
+     * @param {string} toolId - 工具ID
+     * @returns {string} 修正后的工具名（如果是废弃名则返回正确名称）
+     */
+    validateToolName(toolId) {
+        const DEPRECATED_TOOLS = {
+            'FileOperator': 'ServerFileOperator',
+            'fileoperator': 'ServerFileOperator'
+        };
+        
+        if (DEPRECATED_TOOLS[toolId]) {
+            console.warn(`[CategoryMapper] ⚠️ 废弃工具名检测: "${toolId}" -> "${DEPRECATED_TOOLS[toolId]}"，请更新调用代码`);
+            return DEPRECATED_TOOLS[toolId];
+        }
+        
+        return toolId;
+    }
+    
+    /**
      * 重新加载配置文件
      */
     reloadConfig() {

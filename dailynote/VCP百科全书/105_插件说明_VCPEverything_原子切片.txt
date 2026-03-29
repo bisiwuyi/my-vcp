@@ -117,7 +117,7 @@ maxResults:「始」10「末」
 
 步骤2：使用返回的路径读取文件（假设FileOperator为后端插件）
 <<<[TOOL_REQUEST]>>>
-tool_name:「始」FileOperator「末」,
+tool_name:「始」ServerFileOperator「末」,
 command:「始」read「末」,
 file_path:「始」C:\\Users\\Name\\AppData\\Roaming\\MyApp\\config.json「末」
 <<<[END_TOOL_REQUEST]>>>
