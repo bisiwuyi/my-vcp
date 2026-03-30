@@ -258,6 +258,15 @@ export async function loadPluginConfig(pluginName) {
         form.removeEventListener('submit', handlePluginFormSubmit);
         form.addEventListener('submit', handlePluginFormSubmit);
 
+        // 插件使用注意事项
+        const noticeSection = createUsageNoticeSection(pluginName, originalPluginConfigs[pluginName] || []);
+        const pluginFormActions = form.querySelector('.form-actions');
+        if (pluginFormActions) {
+            form.insertBefore(noticeSection, pluginFormActions);
+        } else {
+            form.appendChild(noticeSection);
+        }
+
         // Invocation Commands Editor
         if (manifest.capabilities?.invocationCommands?.length > 0) {
             const commandsSection = createInvocationCommandsEditor(pluginName, manifest.capabilities.invocationCommands);
@@ -326,6 +335,67 @@ function addCustomConfigFieldToPluginForm(form, pluginName, containerToAddTo) {
     } else {
         form.appendChild(formGroup);
     }
+}
+
+/**
+ * 创建插件使用注意事项编辑区域。
+ * @param {string} pluginName - 插件名称
+ * @param {Array} configEntries - 配置条目
+ * @returns {HTMLDivElement} - 注意事项编辑区域
+ */
+function createUsageNoticeSection(pluginName, configEntries) {
+    const noticeSection = document.createElement('div');
+    noticeSection.className = 'usage-notice-section';
+    
+    const noticeTitle = document.createElement('h3');
+    noticeTitle.textContent = '插件使用注意事项';
+    noticeSection.appendChild(noticeTitle);
+    
+    const noticeDesc = document.createElement('p');
+    noticeDesc.className = 'field-description';
+    noticeDesc.textContent = 'AI 调用此插件时自动注入的注意事项，支持 Markdown 格式。首次调用时注入，第二次不再重复。';
+    noticeSection.appendChild(noticeDesc);
+    
+    const noticeKey = `PLUGIN_USAGE_NOTICE_${pluginName}`;
+    const enabledKey = `PLUGIN_USAGE_NOTICE_ENABLED_${pluginName}`;
+    
+    const noticeEntry = configEntries.find(e => e.key === noticeKey && !e.isCommentOrEmpty);
+    const enabledEntry = configEntries.find(e => e.key === enabledKey && !e.isCommentOrEmpty);
+    
+    const noticeValue = noticeEntry ? noticeEntry.value : '';
+    const enabledValue = enabledEntry ? enabledEntry.value : 'true';
+    
+    const noticeGroup = document.createElement('div');
+    noticeGroup.className = 'form-group';
+    
+    const enabledLabel = document.createElement('label');
+    enabledLabel.textContent = '启用自动注入';
+    const enabledSwitch = document.createElement('input');
+    enabledSwitch.type = 'checkbox';
+    enabledSwitch.name = enabledKey;
+    enabledSwitch.checked = enabledValue === 'true';
+    enabledSwitch.dataset.expectedType = 'boolean';
+    enabledSwitch.style.marginLeft = '8px';
+    enabledLabel.appendChild(enabledSwitch);
+    noticeGroup.appendChild(enabledLabel);
+    noticeSection.appendChild(noticeGroup);
+    
+    const textareaLabel = document.createElement('label');
+    textareaLabel.textContent = '注意事项内容';
+    textareaLabel.style.display = 'block';
+    textareaLabel.style.marginTop = '8px';
+    noticeSection.appendChild(textareaLabel);
+    
+    const textarea = document.createElement('textarea');
+    textarea.name = noticeKey;
+    textarea.value = noticeValue;
+    textarea.rows = 4;
+    textarea.style.width = '100%';
+    textarea.style.marginTop = '4px';
+    textarea.placeholder = '例如：使用此插件前请确保已登录账号...';
+    noticeSection.appendChild(textarea);
+    
+    return noticeSection;
 }
 
 /**

@@ -1,0 +1,51 @@
+{
+  "agentStats": {
+    "agent1": {
+      "googlesearch_googlesearch": {
+        "count": 2,
+        "lastUsed": 20542
+      },
+      "testplugin_test": {
+        "count": 2,
+        "lastUsed": 20542
+      },
+      "googlesearch_search": {
+        "count": 2,
+        "lastUsed": 20542
+      }
+    },
+    "agent2": {
+      "googlesearch_search": {
+        "count": 1,
+        "lastUsed": 20542
+      }
+    },
+    "agent3": {
+      "googlesearch_search": {
+        "count": 1,
+        "lastUsed": 20542
+      }
+    },
+    "agent4": {
+      "googlesearch_search": {
+        "count": 1,
+        "lastUsed": 20542
+      }
+    }
+  },
+  "globalStats": {
+    "googlesearch_googlesearch": {
+      "count": 2,
+      "lastUsed": 20542
+    },
+    "testplugin_test": {
+      "count": 2,
+      "lastUsed": 20542
+    },
+    "googlesearch_search": {
+      "count": 5,
+      "lastUsed": 20542
+    }
+  },
+  "savedAt": "2026-03-30T13:00:45.912Z"
+}

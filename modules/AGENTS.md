@@ -11,6 +11,8 @@
 | 变量替换管线 | `modules/messageProcessor.js` | 多阶段占位符解析 |
 | 日志初始化 | `modules/logger.js` | 控制台重定向与日志输出 |
 | 角色分割转换 | `modules/roleDivider.js` | role 拆分与过滤 |
+| 工具发现中间件 | `modules/vtbroker/` | 独立 VTPBroker 模块（热度统计、分类映射） |
+| 工具发现中间件 | `modules/builtin_vtbroker/` | 内置 VTPBroker 模块（双版本整合+渐进式披露+注意点注入） |
 
 ## 约定
 - 默认采用 CommonJS 导出（`module.exports`）。

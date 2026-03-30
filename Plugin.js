@@ -63,6 +63,35 @@ class PluginManager extends EventEmitter {
         if (this.debugMode) console.log(`[PluginManager] Project base path set to: ${this.projectBasePath}`);
     }
 
+    /**
+     * 插件加载成功钩子 - 单个插件加载完成时触发
+     * @param {string} pluginName - 插件名称
+     * @param {Object} manifest - 插件 manifest
+     */
+    onPluginLoaded(pluginName, manifest) {
+        if (this.debugMode) console.log(`[PluginManager] Plugin loaded: ${pluginName}`);
+        this.emit('pluginLoaded', { pluginName, manifest });
+    }
+
+    /**
+     * 插件卸载成功钩子 - 单个插件卸载时触发
+     * @param {string} pluginName - 插件名称
+     */
+    onPluginUnloaded(pluginName) {
+        if (this.debugMode) console.log(`[PluginManager] Plugin unloaded: ${pluginName}`);
+        this.emit('pluginUnloaded', { pluginName });
+    }
+
+    /**
+     * 插件更新成功钩子 - 单个插件更新时触发
+     * @param {string} pluginName - 插件名称
+     * @param {Object} manifest - 更新后的 manifest
+     */
+    onPluginUpdated(pluginName, manifest) {
+        if (this.debugMode) console.log(`[PluginManager] Plugin updated: ${pluginName}`);
+        this.emit('pluginUpdated', { pluginName, manifest });
+    }
+
     _getPluginConfig(pluginManifest) {
         const config = {};
         const globalEnv = process.env;
@@ -476,6 +505,9 @@ class PluginManager extends EventEmitter {
 
                         this.plugins.set(manifest.name, manifest);
                         console.log(`[PluginManager] Loaded manifest: ${manifest.displayName} (${manifest.name}, Type: ${manifest.pluginType})`);
+                        
+                        // 触发单个插件加载钩子（供内置 VTPBroker 等模块实时同步）
+                        this.onPluginLoaded(manifest.name, manifest);
 
                         const isPreprocessor = manifest.pluginType === 'messagePreprocessor' || manifest.pluginType === 'hybridservice';
                         const isService = manifest.pluginType === 'service' || manifest.pluginType === 'hybridservice';

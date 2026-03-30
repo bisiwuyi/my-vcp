@@ -7,12 +7,17 @@
 
 const express = require('express');
 const VTPBroker = require('../modules/vtbroker');
+const BuiltinVTPBroker = require('../modules/builtin_vtbroker');
 
 function createVTPBrokerRouter() {
     const router = express.Router();
 
-    // 获取 vtbroker 实例
+    // 获取 vtbroker 实例（根据配置选择）
     function getBroker() {
+        const ENABLE_BUILTIN = process.env.ENABLE_BUILTIN_VTBROKER === 'true';
+        if (ENABLE_BUILTIN) {
+            return BuiltinVTPBroker.getInstance();
+        }
         return VTPBroker.getInstance();
     }
 
@@ -110,6 +115,46 @@ function createVTPBrokerRouter() {
             initialized: broker._initialized,
             totalTools: broker.getTotalToolCount()
         });
+    });
+
+    // 模糊搜索工具（内置 VTPBroker 特有）
+    router.get('/search', (req, res) => {
+        try {
+            const broker = getBroker();
+            const { query, category_id } = req.query;
+            
+            if (!query) {
+                return res.status(400).json({
+                    success: false,
+                    error: '缺少必填参数 query'
+                });
+            }
+            
+            if (typeof broker.search_tools !== 'function') {
+                return res.status(501).json({
+                    success: false,
+                    error: '当前模式不支持模糊搜索'
+                });
+            }
+            
+            const result = broker.search_tools(query, category_id || null);
+            if (result.status === 'success') {
+                res.json({
+                    success: true,
+                    data: result.result
+                });
+            } else {
+                res.status(400).json({
+                    success: false,
+                    error: result.error
+                });
+            }
+        } catch (error) {
+            res.status(500).json({
+                success: false,
+                error: error.message
+            });
+        }
     });
 
     // v2.0: 批量获取工具 Schema

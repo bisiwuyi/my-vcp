@@ -1164,8 +1164,18 @@ async function initialize() {
 
     // 初始化 VTP Broker (工具发现中间商)
     console.log('初始化 VTP Broker...');
-    const VTPBroker = require('./modules/vtbroker');
-    const vtbroker = VTPBroker.getInstance();
+    const ENABLE_BUILTIN_VTBROKER = process.env.ENABLE_BUILTIN_VTBROKER === 'true';
+    
+    let vtbroker;
+    if (ENABLE_BUILTIN_VTBROKER) {
+        const BuiltinVTPBroker = require('./modules/builtin_vtbroker');
+        vtbroker = BuiltinVTPBroker.getInstance();
+        console.log('[Server] 使用内置 VTPBroker 模块 (双版本功能整合)');
+    } else {
+        const VTPBroker = require('./modules/vtbroker');
+        vtbroker = VTPBroker.getInstance();
+        console.log('[Server] 使用独立 VTPBroker 模块');
+    }
     vtbroker.initialize(pluginManager);
     console.log(`VTP Broker 初始化完成，共 ${vtbroker.getTotalToolCount()} 个工具。`);
 

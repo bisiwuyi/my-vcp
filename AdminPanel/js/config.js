@@ -172,14 +172,39 @@ export function buildEnvStringForPlugin(formElement, originalParsedEntries, plug
                 let value = inputElement.value;
                  if (inputElement.type === 'checkbox' && inputElement.dataset.expectedType === 'boolean') {
                     value = inputElement.checked ? 'true' : 'false';
-                }
-                const isMultiline = value.includes('\n');
+                 }
+                 const isMultiline = value.includes('\n');
                  if (isMultiline) {
                     finalLines.push(`${entry.key}='${value}'`);
-                } else {
+                 } else {
                     finalLines.push(`${entry.key}=${value}`);
-                }
+                 }
              }
+        }
+    });
+
+    // Add plugin usage notice fields (not in originalParsedEntries)
+    const noticePrefix = `PLUGIN_USAGE_NOTICE_${pluginName}`;
+    const enabledPrefix = `PLUGIN_USAGE_NOTICE_ENABLED_${pluginName}`;
+    const noticeKeys = [noticePrefix, enabledPrefix];
+    
+    noticeKeys.forEach(noticeKey => {
+        if (!finalLines.some(line => line.startsWith(noticeKey + "=") || line.startsWith(noticeKey + "='"))) {
+            const inputElement = formElement.elements[noticeKey];
+            if (inputElement) {
+                let value = inputElement.value;
+                if (inputElement.type === 'checkbox' && inputElement.dataset.expectedType === 'boolean') {
+                    value = inputElement.checked ? 'true' : 'false';
+                }
+                if (value || inputElement.type === 'checkbox') {
+                    const isMultiline = value.includes('\n');
+                    if (isMultiline) {
+                        finalLines.push(`${noticeKey}='${value}'`);
+                    } else {
+                        finalLines.push(`${noticeKey}=${value}`);
+                    }
+                }
+            }
         }
     });
 
