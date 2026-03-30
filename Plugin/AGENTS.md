@@ -35,7 +35,8 @@ Plugin/
 ## 已知例外
 - `Plugin/UserAuth/plugin-manifest.json` 缺少 `version` 与 `communication`，属于历史兼容项。
 - `Plugin/DailyNoteWrite/plugin-manifest.json` 为 `synchronous`，但未走常规 `invocationCommands` 形态。
-- 少量插件 manifest 会省略 `capabilities`；不要直接用“一刀切” lint 规则强制失败。
+- 少量插件 manifest 会省略 `capabilities`；不要直接用"一刀切" lint 规则强制失败。
+- 部分旧插件使用 `command` 而非 `commandIdentifier` 字段（如 ChromeBridge、FileOperator、SerpSearch 等），Plugin.js 和 VTPBroker 已做双轨兼容，新插件应统一使用 `commandIdentifier`。
 
 ## 反模式
 - 不要在 manifest 或源码中硬编码密钥。

@@ -1,0 +1,46 @@
+{
+    "manifestVersion": "1.0.0",
+    "name": "AgentDream",
+    "displayName": "梦系统插件",
+    "version": "1.0.0",
+    "description": "Agent梦境系统。让AI回顾记忆、进行联想式沉浸梦境、整理记忆。梦中的所有操作（日记合并、删除、梦感悟）会被记录为可审核的JSON索引，供管理员在后台面板审批。支持串语法批量操作。",
+    "author": "莱恩先生 & VCP",
+    "pluginType": "hybridservice",
+    "entryPoint": {
+        "script": "AgentDream.js"
+    },
+    "communication": {
+        "protocol": "direct"
+    },
+    "dependencies": [
+        "KnowledgeBaseManager"
+    ],
+    "configSchema": {
+        "DREAM_FREQUENCY_HOURS": "integer",
+        "DREAM_TIME_WINDOW_START": "integer",
+        "DREAM_TIME_WINDOW_END": "integer",
+        "DREAM_PROBABILITY": "float",
+        "DREAM_ASSOCIATION_MAX_RANGE_DAYS": "integer",
+        "DREAM_SEED_COUNT_MIN": "integer",
+        "DREAM_SEED_COUNT_MAX": "integer",
+        "DREAM_RECALL_K": "integer",
+        "DREAM_PERSONAL_PUBLIC_RATIO": "integer",
+        "DREAM_TAG_BOOST": "float",
+        "DREAM_CONTEXT_TTL_HOURS": "integer",
+        "DREAM_AGENT_LIST": "string"
+    },
+    "capabilities": {
+        "invocationCommands": [
+            {
+                "command": "DiaryMerge",
+                "description": "功能: 合并多篇日记为一篇新日记。AI提供需要合并的日记路径列表和合并后的新日记正文。系统会自动读取源日记的原始内容，连同新内容一起记录到梦操作JSON供管理员审批。此操作不会立即执行。\\n参数:\\n- sourceDiaries (字符串, 必需): 需要合并的日记文件URL列表，多个用逗号分隔。\\n- newContent (字符串, 必需): 合并后的全新日记正文，末尾必须包含Tag行。\\n调用格式:\\n<<<[TOOL_REQUEST]>>>\\ntool_name:「始」AgentDream「末」,\\ncommand:「始」DiaryMerge「末」,\\nsourceDiaries:「始」file:///path/to/diary1.txt,file:///path/to/diary2.txt「末」,\\nnewContent:「始」合并后的日记正文...「末」\\n<<<[END_TOOL_REQUEST]>>>",
+                "example": "<<<[TOOL_REQUEST]>>>\\ntool_name:「始」AgentDream「末」,\\ncommand:「始」DiaryMerge「末」,\\nsourceDiaries:「始」file:///dailynote/小冰/2025.05.10.txt,file:///dailynote/小冰/2025.05.12.txt「末」,\\nnewContent:「始」合并后的梦境日记内容...\\nTag: 梦境, 记忆整合「末」\\n<<<[END_TOOL_REQUEST]>>>"
+            },
+            {
+                "command": "DreamRecall",
+                "description": "功能: 触发AI进行梦境回忆，从记忆系统中检索相关片段并进行联想式扩展。\\n参数:\\n- topic (字符串, 可选): 回忆的主题或关键词。\\n调用格式:\\n<<<[TOOL_REQUEST]>>>\\ntool_name:「始」AgentDream「末」,\\ncommand:「始」DreamRecall「末」,\\ntopic:「始」关于项目会议的讨论「末」\\n<<<[END_TOOL_REQUEST]>>>",
+                "example": "<<<[TOOL_REQUEST]>>>\\ntool_name:「始」AgentDream「末」,\\ncommand:「始」DreamRecall「末」,\\ntopic:「始」上次讨论的AI架构设计「末」\\n<<<[END_TOOL_REQUEST]>>>"
+            }
+        ]
+    }
+}

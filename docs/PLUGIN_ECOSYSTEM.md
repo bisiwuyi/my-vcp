@@ -543,6 +543,8 @@ module.exports = {
 }
 ```
 
+> **字段说明**：`invocationCommands` 中的命令标识字段应使用 `commandIdentifier`。系统已对旧字段 `command` 做双轨兼容（Plugin.js 和 VTPBroker 均支持），但新插件开发请统一使用 `commandIdentifier`。
+
 ### 3.6 dependencies 字段
 
 ```json
