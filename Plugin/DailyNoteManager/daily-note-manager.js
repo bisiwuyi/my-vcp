@@ -124,8 +124,8 @@ process.stdin.on('end', async () => {
         // Parse the JSON input from Plugin.js
         const parsedInput = JSON.parse(inputData);
         // Extract the 'command' field which contains the raw diary data
-        if (parsedInput && typeof parsedInput.command === 'string') {
-            diaryContent = parsedInput.command;
+        if (parsedInput && typeof parsedInput.diaryContent === 'string') {
+            diaryContent = parsedInput.diaryContent;
         } else {
             throw new Error('Invalid input format: Expected JSON with a "command" string field.');
         }

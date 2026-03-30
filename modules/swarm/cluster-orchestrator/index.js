@@ -1,6 +1,8 @@
 // modules/swarm/cluster-orchestrator/index.js
 const EventEmitter = require('events');
 const { v4: uuidv4 } = require('uuid');
+const dotenv = require('dotenv');
+dotenv.config();
 
 class ClusterNode {
     constructor(options) {
@@ -56,7 +58,7 @@ class Task {
         this.targetCapabilities = options.targetCapabilities || [];
         this.timeout = options.timeout || 60000;
         this.retries = options.retries || 0;
-        this.maxRetries = options.maxRetries || 3;
+        this.maxRetries = options.maxRetries || parseInt(process.env.SWARM_MAX_RETRY_TIMES) || 3;
         this.status = 'pending';
         this.assignedNode = null;
         this.createdAt = Date.now();
@@ -104,7 +106,7 @@ class ClusterOrchestrator extends EventEmitter {
         this.strategy = options.strategy || 'least-loaded';
         this.heartbeatInterval = options.heartbeatInterval || 10000;
         this.taskTimeoutCheckInterval = options.taskTimeoutCheckInterval || 5000;
-        this.maxConcurrentTasksPerNode = options.maxConcurrentTasksPerNode || 10;
+        this.maxConcurrentTasksPerNode = options.maxConcurrentTasksPerNode || parseInt(process.env.SWARM_MAX_PARALLEL_AGENTS) || 10;
         this.heartbeatTimer = null;
         this.timeoutCheckerTimer = null;
         this.nodeId = options.nodeId || uuidv4();

@@ -11,7 +11,7 @@ const { spawn, exec } = require('child_process');
 const path = require('path');
 const fs = require('fs');
 
-const VCPRoot = path.resolve(__dirname, '../../');
+const VCPRoot = path.resolve(__dirname, '../../../');
 const BACKUP_DIR = path.join(VCPRoot, '.opencode_backups');
 const TOPICS_FILE = path.join(VCPRoot, '.opencode_topics.json');
 
