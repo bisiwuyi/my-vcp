@@ -532,6 +532,11 @@ app.use((req, res, next) => {
         return next();
     }
 
+    // Skip bearer token check for VTPBroker API (uses different auth mechanism)
+    if (req.path.startsWith('/vtbroker/api')) {
+        return next();
+    }
+
     const imageServicePathRegex = /^\/pw=[^/]+\/images\//;
     if (imageServicePathRegex.test(req.path)) {
         return next();

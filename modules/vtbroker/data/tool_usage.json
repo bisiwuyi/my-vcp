@@ -1,0 +1,33 @@
+{
+  "agentStats": {
+    "律": {
+      "serverfileoperator_readfile": {
+        "count": 2,
+        "lastUsed": 20542
+      },
+      "tavilysearch_tavilysearch": {
+        "count": 2,
+        "lastUsed": 20542
+      },
+      "agentdream_dreamrecall": {
+        "count": 1,
+        "lastUsed": 20542
+      }
+    }
+  },
+  "globalStats": {
+    "serverfileoperator_readfile": {
+      "count": 2,
+      "lastUsed": 20542
+    },
+    "tavilysearch_tavilysearch": {
+      "count": 2,
+      "lastUsed": 20542
+    },
+    "agentdream_dreamrecall": {
+      "count": 1,
+      "lastUsed": 20542
+    }
+  },
+  "savedAt": "2026-03-30T11:15:47.418Z"
+}

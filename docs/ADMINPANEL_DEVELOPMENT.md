@@ -1,7 +1,7 @@
 # AdminPanel 管理面板开发指南
 
-**版本：** 1.0.0  
-**最后更新：** 2026-02-17  
+**版本：** 1.1.0  
+**最后更新：** 2026-03-30  
 **适用版本：** VCPToolBox 6.4+
 
 ---
@@ -163,7 +163,7 @@ flowchart LR
 | data-target | section id | 前端模块（script.js 中初始化） | 主要 API（示例） |
 |-------------|------------|--------------------------------|------------------|
 | dashboard | dashboard-section | dashboard.js | /admin_api/system-monitor/*, /admin_api/server-log, /admin_api/user-auth-code, /admin_api/weather |
-| base-config | base-config-section | （内联在 script.js） | /admin_api/config/main |
+| base-config | base-config-section | （内联在 script.js，含 VTPBroker 配置分组） | /admin_api/config/main |
 | daily-notes-manager | daily-notes-manager-section | notes-manager.js | （日记与 RAG 相关接口） |
 | vcp-forum | vcp-forum-section | forum.js | /admin_api/forum/* |
 | image-cache-editor | image-cache-editor-section | （iframe） | /admin_api/image-cache, /admin_api/multimodal-cache 等 |
@@ -185,5 +185,79 @@ flowchart LR
 
 ---
 
+## 8. VTPBroker 配置与插件注意点功能
+
+### 8.1 VTPBroker 配置分组（base-config）
+
+全局基础配置页面（`base-config-section`）包含 VTPBroker 配置分组，用于配置内置 VTPBroker 工具发现中间件。
+
+**配置项**：
+| 配置键 | 类型 | 说明 |
+|--------|------|------|
+| `ENABLE_BUILTIN_VTBROKER` | boolean | 启用内置 VTPBroker 模块（替代独立插件模式） |
+| `BUILTIN_VTBROKER_PORT` | integer | 内置 VTPBroker API 监听端口 |
+| `VTBROKER_ENABLE_FUZZY_MATCH` | boolean | 启用模糊搜索功能 |
+| `VTBROKER_MAX_RESULTS` | integer | 单次查询最大返回结果数 |
+
+**实现位置**：
+- 配置文件识别逻辑：`AdminPanel/script.js` 中的 `VTPBROKER_CONFIG_KEYS` 数组和 `isVTPBrokerConfigKey()` 函数
+- 动态分组渲染：`AdminPanel/script.js` 中的 `loadBaseConfig()` 函数
+- CSS 样式：`AdminPanel/index.html` 中的 `.config-group` 等类
+
+**行为**：
+- 仅当 `config.env` 中存在 VTPBroker 相关配置时，分组才显示（`display: block`）
+- VTPBroker 配置项显示在表单顶部，后跟其他全局配置项
+
+### 8.2 插件注意点状态标签
+
+插件列表侧边栏为每个插件显示一个注意点状态标签（📝），便于快速识别哪些插件已配置了使用注意事项。
+
+**状态样式**：
+| 状态 | CSS 类 | 背景色 | 条件 |
+|------|--------|--------|------|
+| 已配置 | `has-notice` | `#2e7d32`（绿色） | 存在非空 `PLUGIN_USAGE_NOTICE_<插件名>` 配置 |
+| 未配置 | `no-notice` | `#424242`（灰色） | 不存在或为空 |
+
+**实现位置**：
+- 导航项创建：`AdminPanel/js/plugins.js` 中的 `createPluginNavItem()` 函数
+- 配置数据读取：在 `loadPluginList()` 中先调用 `createPluginConfigSection()` 填充 `originalPluginConfigs`，再创建导航项
+- CSS 样式：`AdminPanel/index.html` 中的 `.notice-status-badge` 等类
+
+**注意点配置存储**：
+- 插件注意点存储在插件的 `config.env` 中，键为 `PLUGIN_USAGE_NOTICE_<插件名>`
+- 注入开关存储为 `PLUGIN_USAGE_NOTICE_ENABLED_<插件名>`
+
+**相关函数**：
+- `createUsageNoticeSection()`：创注意事项编辑区域 UI
+- `buildEnvStringForPlugin()`：处理多行文本和布尔值类型的保存
+
+### 8.3 VTPBroker 配置变更智能重启提示
+
+当用户在"全局基础配置"页面修改 VTPBroker 相关配置并保存后，系统会自动检测配置变更，并显示醒目的橙色重启提示横幅。
+
+**功能特性**：
+- 自动检测 `ENABLE_BUILTIN_VTBROKER`、`BUILTIN_VTBROKER_PORT`、`VTBROKER_ENABLE_FUZZY_MATCH`、`VTBROKER_MAX_RESULTS` 四项配置的变更
+- 变更检测基于表单元素当前值与原始配置值的比较（支持布尔类型的 checkbox 正确比较）
+- 显示橙色渐变背景的横幅，提示用户需要重启服务
+- 提供"立即重启"按钮，可一键触发服务器重启
+- 提供"稍后"按钮，用户可手动关闭横幅
+
+**实现位置**：
+- 配置变更检测：`AdminPanel/script.js` 中的 `hasVTPBrokerConfigChanged()` 函数
+- 横幅显示：`AdminPanel/script.js` 中的 `showVTPBrokerRestartBanner()` 函数
+- 表单提交处理：`AdminPanel/script.js` 中的 `handleBaseConfigSubmit()` 函数（调用上述两个函数）
+- CSS 样式：`AdminPanel/index.html` 中的 `.vtbroker-restart-banner` 等类
+
+**横幅样式**：
+- 背景：橙色渐变 (`#ff9800` → `#f57c00`)
+- 包含警告图标、提示文本、"立即重启"按钮（红色）、"稍后"按钮（半透明）
+
+**行为**：
+- 仅当 VTPBroker 配置实际发生变更时显示
+- 重启服务后横幅自动消失
+- 用户可选择"稍后"手动关闭，之后再次保存 VTPBroker 配置时会重新显示
+
+---
+
 **文档维护者：** VCPToolBox 开发团队  
-**最后更新：** 2026-02-17
+**最后更新：** 2026-03-30

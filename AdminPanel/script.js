@@ -187,17 +187,65 @@ document.addEventListener('DOMContentLoaded', async () => {
     /**
      * 加载全局配置。
      */
+    const VTPBROKER_CONFIG_KEYS = [
+        'ENABLE_BUILTIN_VTBROKER',
+        'BUILTIN_VTBROKER_PORT',
+        'VTBROKER_ENABLE_FUZZY_MATCH',
+        'VTBROKER_MAX_RESULTS'
+    ];
+
+    function isVTPBrokerConfigKey(key) {
+        return VTPBROKER_CONFIG_KEYS.includes(key);
+    }
+
     async function loadBaseConfig() {
         if (!baseConfigForm) return;
         try {
             const data = await apiFetch(`${API_BASE_URL}/config/main`);
             originalBaseConfigEntries = parseEnvToList(data.content);
-            baseConfigForm.innerHTML = ''; // Clear previous form
+            
+            baseConfigForm.innerHTML = '';
+            
+            const vtbrokerConfigGroup = document.createElement('div');
+            vtbrokerConfigGroup.id = 'vtbroker-config-group';
+            vtbrokerConfigGroup.className = 'config-group';
+            vtbrokerConfigGroup.style.display = 'none';
+            
+            const vtbrokerConfigHeader = document.createElement('h3');
+            vtbrokerConfigHeader.textContent = '内置 VTPBroker (工具发现中间件)';
+            vtbrokerConfigGroup.appendChild(vtbrokerConfigHeader);
+            
+            const vtbrokerConfigDesc = document.createElement('div');
+            vtbrokerConfigDesc.className = 'config-group-description';
+            vtbrokerConfigDesc.textContent = 'VTPBroker 提供工具枚举、搜索、Schema获取功能。开启内置模式后可获得更快的元数据同步和高级特性（热度统计、渐进式披露、插件注意点注入）。';
+            vtbrokerConfigGroup.appendChild(vtbrokerConfigDesc);
+            
+            const vtbrokerStatusDiv = document.createElement('div');
+            vtbrokerStatusDiv.id = 'vtbroker-status';
+            vtbrokerStatusDiv.className = 'vtbroker-status';
+            vtbrokerStatusDiv.innerHTML = '<span class="vtbroker-status-label">当前模式：</span><span class="vtbroker-status-value">加载中...</span>';
+            vtbrokerConfigGroup.appendChild(vtbrokerStatusDiv);
+            
+            const vtbrokerConfigItems = document.createElement('div');
+            vtbrokerConfigItems.id = 'vtbroker-config-items';
+            const nonVtbrokerEntries = [];
 
             originalBaseConfigEntries.forEach((entry, index) => {
                 let formGroup;
                 if (entry.isCommentOrEmpty) {
                     formGroup = createCommentOrEmptyElement(entry.value, index);
+                    nonVtbrokerEntries.push({ entry, formGroup, index });
+                } else if (isVTPBrokerConfigKey(entry.key)) {
+                    let inferredType = 'string';
+                    if (/^(true|false)$/i.test(entry.value)) inferredType = 'boolean';
+                    else if (!isNaN(parseFloat(entry.value)) && isFinite(entry.value) && !entry.value.includes('.')) inferredType = 'integer';
+
+                    formGroup = createFormGroup(
+                        entry.key, entry.value, inferredType,
+                        `VTPBroker 配置: ${entry.key}`,
+                        false, null, false, entry.isMultilineQuoted
+                    );
+                    vtbrokerConfigItems.appendChild(formGroup);
                 } else {
                     let inferredType = 'string';
                     if (/^(true|false)$/i.test(entry.value)) inferredType = 'boolean';
@@ -208,7 +256,17 @@ document.addEventListener('DOMContentLoaded', async () => {
                         `根目录 config.env 配置项: ${entry.key}`,
                         false, null, false, entry.isMultilineQuoted
                     );
+                    nonVtbrokerEntries.push({ entry, formGroup, index });
                 }
+            });
+
+            vtbrokerConfigGroup.appendChild(vtbrokerConfigItems);
+            if (vtbrokerConfigItems.children.length > 0) {
+                vtbrokerConfigGroup.style.display = 'block';
+            }
+            baseConfigForm.appendChild(vtbrokerConfigGroup);
+
+            nonVtbrokerEntries.forEach(({ formGroup }) => {
                 baseConfigForm.appendChild(formGroup);
             });
 
@@ -216,9 +274,91 @@ document.addEventListener('DOMContentLoaded', async () => {
             actionsDiv.className = 'form-actions';
             actionsDiv.innerHTML = `<button type="submit">保存全局配置</button>`;
             baseConfigForm.appendChild(actionsDiv);
+            
+            fetch('/vtbroker/api/status')
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        const statusDiv = document.getElementById('vtbroker-status');
+                        if (statusDiv) {
+                            const modeClass = data.mode === 'builtin' ? 'mode-builtin' : 'mode-standalone';
+                            const modeIcon = data.mode === 'builtin' ? '🔧' : '📦';
+                            statusDiv.innerHTML = `
+                                <span class="vtbroker-status-label">当前模式：</span>
+                                <span class="vtbroker-status-badge ${modeClass}">${modeIcon} ${data.modeDescription}</span>
+                                <span class="vtbroker-status-tools">（${data.totalTools} 个工具）</span>
+                            `;
+                        }
+                    }
+                })
+                .catch(() => {});
         } catch (error) {
             baseConfigForm.innerHTML = `<p class="error-message">加载全局配置失败: ${error.message}</p>`;
         }
+    }
+
+    /**
+     * 检测 VTPBroker 配置是否发生变化。
+     * @returns {boolean} - 是否有变化
+     */
+    function hasVTPBrokerConfigChanged() {
+        const vtbrokerKeys = ['ENABLE_BUILTIN_VTBROKER', 'BUILTIN_VTBROKER_PORT', 'VTBROKER_ENABLE_FUZZY_MATCH', 'VTBROKER_MAX_RESULTS'];
+        
+        for (const key of vtbrokerKeys) {
+            const entry = originalBaseConfigEntries.find(e => e.key === key && !e.isCommentOrEmpty);
+            if (!entry) continue;
+            
+            const inputElement = baseConfigForm.querySelector(`[data-original-key="${key}"]`);
+            if (!inputElement) continue;
+            
+            let currentValue;
+            if (inputElement.type === 'checkbox') {
+                currentValue = inputElement.checked ? 'true' : 'false';
+            } else {
+                currentValue = inputElement.value;
+            }
+            
+            if (currentValue !== entry.value) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * 显示 VTPBroker 重启提示横幅。
+     */
+    function showVTPBrokerRestartBanner() {
+        const existingBanner = document.getElementById('vtbroker-restart-banner');
+        if (existingBanner) existingBanner.remove();
+        
+        const banner = document.createElement('div');
+        banner.id = 'vtbroker-restart-banner';
+        banner.className = 'vtbroker-restart-banner';
+        banner.innerHTML = `
+            <div class="vtbroker-restart-banner-content">
+                <span class="vtbroker-restart-banner-icon">⚠️</span>
+                <span class="vtbroker-restart-banner-text">VTPBroker 配置已更改，需要 <strong>重启服务</strong> 才能生效。</span>
+                <button id="vtbroker-restart-now-btn" class="vtbroker-restart-now-btn">立即重启</button>
+                <button id="vtbroker-restart-dismiss-btn" class="vtbroker-restart-dismiss-btn">稍后</button>
+            </div>
+        `;
+        
+        const vtbrokerGroup = document.getElementById('vtbroker-config-group');
+        if (vtbrokerGroup) {
+            vtbrokerGroup.insertAdjacentElement('afterend', banner);
+        } else {
+            baseConfigForm.insertBefore(banner, baseConfigForm.firstChild);
+        }
+        
+        document.getElementById('vtbroker-restart-now-btn').addEventListener('click', async () => {
+            await restartServer();
+            banner.remove();
+        });
+        
+        document.getElementById('vtbroker-restart-dismiss-btn').addEventListener('click', () => {
+            banner.remove();
+        });
     }
 
     /**
@@ -228,12 +368,20 @@ document.addEventListener('DOMContentLoaded', async () => {
     async function handleBaseConfigSubmit(event) {
         event.preventDefault();
         const newConfigString = buildEnvString(baseConfigForm, originalBaseConfigEntries);
+        const vtbrokerChanged = hasVTPBrokerConfigChanged();
+        
         try {
             await apiFetch(`${API_BASE_URL}/config/main`, {
                 method: 'POST',
                 body: JSON.stringify({ content: newConfigString })
             });
-            showMessage('全局配置已保存！部分更改可能需要重启服务生效。', 'success');
+            
+            if (vtbrokerChanged) {
+                showVTPBrokerRestartBanner();
+                showMessage('全局配置已保存！VTPBroker 配置变更需要重启服务。', 'warning', 5000);
+            } else {
+                showMessage('全局配置已保存！部分更改可能需要重启服务生效。', 'success');
+            }
             loadBaseConfig();
         } catch (error) { /* Error handled by apiFetch */ }
     }

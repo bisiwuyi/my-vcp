@@ -21,6 +21,11 @@ function createVTPBrokerRouter() {
         return VTPBroker.getInstance();
     }
 
+    // 测试端点 - 添加在文件开头确保能正确注册
+    router.get('/test', (req, res) => {
+        res.json({ success: true, message: 'test endpoint works' });
+    });
+
     // 获取所有工具分类
     router.get('/categories', (req, res) => {
         try {
@@ -114,6 +119,24 @@ function createVTPBrokerRouter() {
             success: true,
             initialized: broker._initialized,
             totalTools: broker.getTotalToolCount()
+        });
+    });
+
+    // VTPBroker 工作模式状态
+    router.get('/status', (req, res) => {
+        const ENABLE_BUILTIN = process.env.ENABLE_BUILTIN_VTBROKER === 'true';
+        const broker = getBroker();
+        res.json({
+            success: true,
+            mode: ENABLE_BUILTIN ? 'builtin' : 'standalone',
+            modeDescription: ENABLE_BUILTIN ? '内置模式（双版本功能整合）' : '独立模式（传统目录扫描）',
+            initialized: broker._initialized,
+            totalTools: broker.getTotalToolCount(),
+            config: {
+                enableFuzzyMatch: process.env.VTBROKER_ENABLE_FUZZY_MATCH !== 'false',
+                maxResults: parseInt(process.env.VTBROKER_MAX_RESULTS || '100'),
+                port: parseInt(process.env.BUILTIN_VTBROKER_PORT || '8099')
+            }
         });
     });
 

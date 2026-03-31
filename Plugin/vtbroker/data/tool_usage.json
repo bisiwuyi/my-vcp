@@ -1,5 +1,33 @@
 {
-  "agentStats": {},
-  "globalStats": {},
-  "savedAt": "2026-03-30T13:12:47.583Z"
+  "agentStats": {
+    "律": {
+      "opencli_chat": {
+        "count": 2,
+        "lastUsed": 20543
+      },
+      "opencli_openurl": {
+        "count": 5,
+        "lastUsed": 20543
+      },
+      "tavilysearch_tavilysearch": {
+        "count": 2,
+        "lastUsed": 20543
+      }
+    }
+  },
+  "globalStats": {
+    "opencli_chat": {
+      "count": 2,
+      "lastUsed": 20543
+    },
+    "opencli_openurl": {
+      "count": 5,
+      "lastUsed": 20543
+    },
+    "tavilysearch_tavilysearch": {
+      "count": 2,
+      "lastUsed": 20543
+    }
+  },
+  "savedAt": "2026-03-31T14:01:19.729Z"
 }

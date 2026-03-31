@@ -1,2 +1,9 @@
 nul
 test-output/helloworld-api/nul
+config.env
+DebugLog/
+dailynote/
+VectorStore/*.sqlite
+VectorStore/*.sqlite-shm
+VectorStore/*.sqlite-wal
+VectorStore/*.usearch

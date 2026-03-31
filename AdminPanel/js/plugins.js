@@ -21,8 +21,12 @@ export async function loadPluginList() {
         configDetailsContainer.querySelectorAll('section.dynamic-plugin-section').forEach(sec => sec.remove());
         pluginNavList.querySelectorAll('.nav-category').forEach(cat => cat.remove());
 
-
         plugins.sort((a, b) => (a.manifest.displayName || a.manifest.name).localeCompare(b.manifest.displayName || b.manifest.name));
+
+        // First, create config sections to populate originalPluginConfigs
+        plugins.forEach(plugin => {
+            createPluginConfigSection(plugin, configDetailsContainer);
+        });
 
         const enabledPlugins = plugins.filter(plugin => plugin.enabled);
         const disabledPlugins = plugins.filter(plugin => !plugin.enabled);
@@ -49,10 +53,6 @@ export async function loadPluginList() {
             });
         }
 
-        plugins.forEach(plugin => {
-            createPluginConfigSection(plugin, configDetailsContainer);
-        });
-
     } catch (error) {
         pluginNavList.innerHTML += `<li><p class="error-message">加载插件列表失败: ${error.message}</p></li>`;
     }
@@ -70,10 +70,23 @@ function createPluginNavItem(plugin) {
     a.href = '#';
     const originalName = plugin.manifest.name;
     const displayName = plugin.manifest.displayName || originalName;
+    
+    const noticeKey = `PLUGIN_USAGE_NOTICE_${originalName}`;
+    const pluginConfigs = originalPluginConfigs[originalName] || [];
+    const hasNotice = pluginConfigs.some(
+        e => e.key === noticeKey && !e.isCommentOrEmpty && e.value.trim() !== ''
+    );
+
     let nameHtml = displayName;
     if (plugin.isDistributed) {
         nameHtml += ` <span class="plugin-type-icon" title="分布式插件 (来自: ${plugin.serverId || '未知'})">☁️</span>`;
     }
+    
+    // Add notice status badge
+    const badgeClass = hasNotice ? 'has-notice' : 'no-notice';
+    const badgeTitle = hasNotice ? '已配置使用注意事项' : '未配置使用注意事项';
+    nameHtml += ` <span class="notice-status-badge ${badgeClass}" title="${badgeTitle}">📝</span>`;
+    
     nameHtml += `<br><span class="plugin-original-name">(${originalName})</span>`;
     a.innerHTML = nameHtml;
     a.dataset.target = `plugin-${plugin.manifest.name}-config`;
