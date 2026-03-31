@@ -425,7 +425,10 @@ class ToolExecutor {
    * 执行 VTPBroker 工具调用
    */
   _executeVTPBroker(name, args, agentContext = null) {
-    const VTPBroker = require('../vtbroker');
+    const ENABLE_BUILTIN_VTBROKER = process.env.ENABLE_BUILTIN_VTBROKER === 'true';
+    const VTPBroker = ENABLE_BUILTIN_VTBROKER
+      ? require('../builtin_vtbroker')
+      : require('../vtbroker');
     const broker = VTPBroker.getInstance();
 
     if (!broker._initialized) {
