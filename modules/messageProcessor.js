@@ -32,6 +32,77 @@ function resolveTvsDir() {
 const TVS_DIR = resolveTvsDir();
 const VCP_ASYNC_RESULTS_DIR = path.join(__dirname, '..', 'VCPAsyncResults');
 
+const { estimateTokens } = require('./utils/tokenCounter');
+
+const DEFAULT_MAX_TOKENS = 128000; // 默认模型上下文窗口
+const WORLDVIEW_BUDGET_RATIO = 0.3; // 世界观文档占 system prompt 的最大比例
+
+async function truncateWorldviewIfNeeded(systemPrompt, worldviewContent, context) {
+    if (!worldviewContent) return '';
+    
+    const debugMode = context?.DEBUG_MODE || process.env.VCP_WORLDVIEW_DEBUG === 'true';
+    
+    try {
+        // 获取模型的上下文窗口大小
+        const maxTokens = context?.model?.includes('32k') ? 32000 : 
+                         context?.model?.includes('128k') ? 128000 : 
+                         context?.maxTokens || DEFAULT_MAX_TOKENS;
+        
+        // 估算当前 system prompt 的 token 数
+        const systemPromptTokens = estimateTokens(systemPrompt);
+        
+        // 计算世界观的安全预算（system prompt 的 30%）
+        const worldviewBudget = Math.floor(systemPromptTokens * WORLDVIEW_BUDGET_RATIO);
+        
+        // 估算世界观的 token 数
+        const worldviewTokens = estimateTokens(worldviewContent);
+        
+        // 如果世界观内容在预算内，直接返回
+        if (worldviewTokens <= worldviewBudget) {
+            return worldviewContent;
+        }
+        
+        // 超过预算，只保留"当前进行中"区域，但必须保留header（包含标记语法指令）
+        const headerMatch = worldviewContent.match(/^# 🌍 对话世界观文档[\s\S]*?(?=## 📌 当前进行中|$)/i);
+        const header = headerMatch ? headerMatch[0] : '';
+        const activeSectionMatch = worldviewContent.match(/## 📌 当前进行中[\s\S]*?(?=## 🗄️|$)/i);
+        if (activeSectionMatch) {
+            let truncatedContent = activeSectionMatch[0];
+            // 如果header存在，预估其token并从预算中扣除
+            const headerTokens = header ? estimateTokens(header) : 0;
+            let remainingBudget = worldviewBudget - headerTokens;
+            if (remainingBudget < 0) remainingBudget = 0;
+            
+            // 如果activeSection超过剩余预算，进一步截断
+            let activeTokens = estimateTokens(truncatedContent);
+            if (activeTokens > remainingBudget && remainingBudget > 0) {
+                const charsPerToken = 1 / 1.5;
+                const maxChars = Math.floor(remainingBudget * charsPerToken);
+                truncatedContent = truncatedContent.substring(0, maxChars);
+            }
+            
+            const finalContent = header + '\n' + truncatedContent;
+            if (debugMode) {
+                console.log(`[messageProcessor] 世界观文档截断（保留header），原始: ${worldviewTokens} tokens，截断后: ${estimateTokens(finalContent)} tokens`);
+            }
+            return finalContent;
+        }
+        
+        // 如果无法提取，粗暴截断
+        const truncated = worldviewContent.substring(0, Math.floor(worldviewBudget * 2));
+        if (debugMode) {
+            console.log(`[messageProcessor] 世界观文档粗暴截断至 ${truncated.length} 字符`);
+        }
+        return truncated;
+        
+    } catch (e) {
+        if (debugMode) {
+            console.warn(`[messageProcessor] Token预算检查失败:`, e.message);
+        }
+        return worldviewContent; // 出错时返回原文
+    }
+}
+
 async function resolveAllVariables(text, model, role, context, processingStack = new Set()) {
     if (text == null) return '';
     let processedText = String(text);
@@ -390,6 +461,31 @@ async function replaceOtherVariables(text, model, role, context) {
         let festivalInfo = `${yearName}${lunarDate.zodiac}年${lunarDate.dateStr}`;
         if (lunarDate.solarTerm) festivalInfo += ` ${lunarDate.solarTerm}`;
         processedText = processedText.replace(/\{\{Festival\}\}/g, festivalInfo);
+
+        // === 对话世界观文档占位符处理（需要requestId上下文）===
+        if (processedText.includes('{{VCPWorldview}}')) {
+            const worldviewManager = require('./DialogueWorldviewManager');
+            const requestId = context?.requestId;
+            if (requestId) {
+                try {
+                    const stripRecent = parseInt(process.env.VCP_WORLDVIEW_INJECT_STRIP_RECENT || '3', 10);
+                    const worldviewContent = await worldviewManager.getWorldviewContent(requestId, { stripRecent });
+                    if (worldviewContent) {
+                        processedText = processedText.replace(/\{\{VCPWorldview\}\}/g, worldviewContent);
+                    } else {
+                        processedText = processedText.replace(/\{\{VCPWorldview\}\}/g, '');
+                    }
+                } catch (e) {
+                    const debugMode = context?.DEBUG_MODE || process.env.VCP_WORLDVIEW_DEBUG === 'true';
+                    if (debugMode) console.error(`[messageProcessor] 获取世界观文档失败:`, e.message);
+                    processedText = processedText.replace(/\{\{VCPWorldview\}\}/g, '');
+                }
+            } else {
+                const debugMode = context?.DEBUG_MODE || process.env.VCP_WORLDVIEW_DEBUG === 'true';
+                if (debugMode) console.warn(`[messageProcessor] {{VCPWorldview}} 缺少requestId上下文`);
+                processedText = processedText.replace(/\{\{VCPWorldview\}\}/g, '');
+            }
+        }
 
         const staticPlaceholderValues = pluginManager.getAllPlaceholderValues(); // Use the getter
         if (staticPlaceholderValues && staticPlaceholderValues.size > 0) {

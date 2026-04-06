@@ -2,6 +2,18 @@
 const { StringDecoder } = require('string_decoder');
 const vcpInfoHandler = require('../../vcpInfoHandler.js');
 const roleDivider = require('../roleDivider.js');
+const DialogueWorldviewManager = require('../DialogueWorldviewManager');
+const contextOptimizer = require('../contextOptimizer');
+
+// 安全提取多模态内容中的文本
+function extractTextFromContent(content) {
+    if (!content) return '';
+    if (typeof content === 'string') return content;
+    if (Array.isArray(content)) {
+        return content.filter(item => item.type === 'text').map(item => item.text).join('\n');
+    }
+    return JSON.stringify(content);
+}
 
 class StreamHandler {
   constructor(context) {
@@ -41,6 +53,10 @@ class StreamHandler {
 
     const shouldShowVCP = SHOW_VCP_OUTPUT || this.context.forceShowVCP;
     const id = originalBody.requestId || originalBody.messageId;
+    const worldviewSessionId = originalBody.topicId || id || `auto_${Date.now()}`;
+    const agentId = originalBody.agentId || null;
+
+    console.log(`[Worldview Debug] originalBody.topicId: ${originalBody.topicId}, id: ${id}, worldviewSessionId: ${worldviewSessionId}, agentId: ${agentId}`);
 
     let currentMessagesForLoop = originalBody.messages ? JSON.parse(JSON.stringify(originalBody.messages)) : [];
     let recursionDepth = 0;
@@ -207,6 +223,11 @@ class StreamHandler {
         break;
       }
 
+      // 上下文优化：如果启用，只传递最近 N 轮对话给 AI
+      const messagesForAI = contextOptimizer.isEnabled()
+          ? contextOptimizer.extractRecentRounds(currentMessagesForLoop)
+          : currentMessagesForLoop;
+
       let assistantMessages = [{ role: 'assistant', content: currentAIContentForLoop }];
       if (enableRoleDivider && enableRoleDividerInLoop) {
         assistantMessages = roleDivider.process(assistantMessages, {
@@ -294,25 +315,29 @@ class StreamHandler {
               Authorization: `Bearer ${apiKey}`,
               Accept: 'text/event-stream',
             },
-            body: JSON.stringify({ ...originalBody, messages: currentMessagesForLoop, stream: true }),
+            body: JSON.stringify({ ...originalBody, messages: messagesForAI, stream: true }),
             signal: abortController.signal,
           },
           { retries: apiRetries, delay: apiRetryDelay, debugMode: DEBUG_MODE }
         );
+        
+        // 记录实际发送的 messages
+        console.log(`[StreamHandler] 实际发送给API的messages数量: ${messagesForAI.length}, userMessages: ${messagesForAI.filter(m => m.role === 'user').length}, roles: ${messagesForAI.map(m => m.role).join(', ')}`);
+        
+        if (!nextAiAPIResponse.ok) break;
 
-        if (nextAiAPIResponse.ok) {
-          let nextAIResponseData = await processAIResponseStreamHelper(nextAiAPIResponse, false);
-          currentAIContentForLoop = nextAIResponseData.content;
-          if (writeChatLog) {
-            chatLogs.push({
-              request: { messages: currentMessagesForLoop },
-              toolCalls: archeryLogs,
-              response: nextAIResponseData.message,
-            });
-          }
-          recursionDepth++;
-          continue;
+        let nextAIResponseData = await processAIResponseStreamHelper(nextAiAPIResponse, false);
+        currentAIContentForLoop = nextAIResponseData.content;
+        
+        if (writeChatLog) {
+          chatLogs.push({
+            request: { messages: messagesForAI },
+            toolCalls: archeryLogs,
+            response: nextAIResponseData.message,
+          });
         }
+        recursionDepth++;
+        continue;
       }
 
       if (normalCalls.length === 0) {
@@ -418,7 +443,7 @@ class StreamHandler {
             Authorization: `Bearer ${apiKey}`,
             Accept: 'text/event-stream',
           },
-          body: JSON.stringify({ ...originalBody, messages: currentMessagesForLoop, stream: true }),
+          body: JSON.stringify({ ...originalBody, messages: messagesForAI, stream: true }),
           signal: abortController.signal,
         },
         { retries: apiRetries, delay: apiRetryDelay, debugMode: DEBUG_MODE }
@@ -445,6 +470,24 @@ class StreamHandler {
     } // toolcall loop end
 
     if (writeChatLog) writeChatLog(originalBody, chatLogs);
+
+    const rawContent = (originalBody.messages || []).filter(m => m.role === 'user').pop()?.content;
+    const lastUserMessage = extractTextFromContent(rawContent);
+    const lastAiMessage = currentAIContentForLoop || '';
+
+    console.log(`[Worldview Debug] 调用onConversationEnd, worldviewSessionId: ${worldviewSessionId}`);
+
+    const isAborted = abortController?.signal?.aborted || false;
+    
+    DialogueWorldviewManager.onConversationEnd(
+        currentMessagesForLoop,
+        worldviewSessionId,
+        lastUserMessage,
+        lastAiMessage,
+        isAborted,
+        id,
+        agentId
+    ).catch(e => console.error('[Worldview] 处理失败:', e.message));
 
     if (recursionDepth >= maxRecursion && !res.writableEnded && !res.destroyed) {
       try {

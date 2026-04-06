@@ -6,12 +6,16 @@
         "lastUsed": 20543
       },
       "opencli_openurl": {
-        "count": 5,
+        "count": 6,
         "lastUsed": 20543
       },
       "tavilysearch_tavilysearch": {
+        "count": 3,
+        "lastUsed": 20548
+      },
+      "vsearch_vsearch": {
         "count": 2,
-        "lastUsed": 20543
+        "lastUsed": 20547
       }
     }
   },
@@ -21,13 +25,17 @@
       "lastUsed": 20543
     },
     "opencli_openurl": {
-      "count": 5,
+      "count": 6,
       "lastUsed": 20543
     },
     "tavilysearch_tavilysearch": {
+      "count": 3,
+      "lastUsed": 20548
+    },
+    "vsearch_vsearch": {
       "count": 2,
-      "lastUsed": 20543
+      "lastUsed": 20547
     }
   },
-  "savedAt": "2026-03-31T14:01:19.729Z"
+  "savedAt": "2026-04-05T18:13:35.968Z"
 }

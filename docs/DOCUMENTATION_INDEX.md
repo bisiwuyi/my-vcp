@@ -37,6 +37,7 @@
 | [DISTRIBUTED_ARCHITECTURE.md](./DISTRIBUTED_ARCHITECTURE.md) | WebSocket协议、节点注册、工具执行、文件传输 | ⭐⭐ |
 | [RUST_VECTOR_ENGINE.md](./RUST_VECTOR_ENGINE.md) | N-API接口、向量操作、性能特性 | ⭐⭐ |
 | [FRONTEND_COMPONENTS.md](./FRONTEND_COMPONENTS.md) | AdminPanel、VCPChrome、OpenWebUISub架构与集成 | ⭐⭐ |
+| [@指令系统.md](./@指令系统.md) | 自然语言命令终端、强制路由、熔断机制 | ⭐⭐ |
 
 ### 参考文档
 
@@ -45,6 +46,7 @@
 | [FILE_INVENTORY.md](./FILE_INVENTORY.md) | 所有重要文件的职责、入口、依赖关系 | ⭐ |
 | [FEATURE_MATRIX.md](./FEATURE_MATRIX.md) | 每项功能的入口、触发条件、处理流程、配置项 | ⭐ |
 | [OPERATIONS.md](./OPERATIONS.md) | 启动方式、依赖要求、Docker配置、故障排查 | ⭐ |
+| [@指令系统开发进度.md](./@指令系统开发进度.md) | @指令系统开发进度、问题追踪 | ⭐ |
 
 ---
 

@@ -111,6 +111,7 @@ const messageProcessor = require('./modules/messageProcessor.js');
 const knowledgeBaseManager = require('./KnowledgeBaseManager.js'); // 新增：引入统一知识库管理器
 const pluginManager = require('./Plugin.js');
 const taskScheduler = require('./routes/taskScheduler.js');
+const DialogueWorldviewManager = require('./modules/DialogueWorldviewManager'); // 对话世界观文档管理器
 const webSocketServer = require('./WebSocketServer.js'); // 新增 WebSocketServer 引入
 const FileFetcherServer = require('./FileFetcherServer.js'); // 引入新的 FileFetcherServer 模块
 const vcpInfoHandler = require('./vcpInfoHandler.js'); // 引入新的 VCP 信息处理器
@@ -553,6 +554,11 @@ app.use((req, res, next) => {
         return next();
     }
 
+    // Skip bearer token check for plugin registry (used by frontend autocomplete)
+    if (req.path === '/v1/plugins/registry') {
+        return next();
+    }
+
     const authHeader = req.headers.authorization;
     if (!authHeader || authHeader !== `Bearer ${serverKey}`) {
         return res.status(401).json({ error: 'Unauthorized (Bearer token required)' });
@@ -950,6 +956,16 @@ app.post('/v1/human/tool', async (req, res) => {
     }
 });
 
+app.get('/v1/plugins/registry', (req, res) => {
+    try {
+        const registry = pluginManager.getPluginRegistry();
+        res.status(200).json(registry);
+    } catch (error) {
+        console.error('[Registry] Error fetching plugin registry:', error);
+        res.status(500).json({ error: 'Failed to fetch plugin registry', details: error.message });
+    }
+});
+
 
 async function handleDiaryFromAIResponse(responseText) {
     let fullAiResponseTextForDiary = '';
@@ -1190,6 +1206,24 @@ async function initialize() {
     // 这样在 initializeServices 内部才能正确地为 VCPLog 等插件注入广播函数。
     pluginManager.setWebSocketServer(webSocketServer);
 
+    pluginManager.on('pluginsLoaded', () => {
+        if (webSocketServer) {
+            webSocketServer.broadcast({
+                type: 'REGISTRY_UPDATED',
+                timestamp: Date.now()
+            });
+        }
+    });
+
+    pluginManager.on('pluginUpdated', () => {
+        if (webSocketServer) {
+            webSocketServer.broadcast({
+                type: 'REGISTRY_UPDATED',
+                timestamp: Date.now()
+            });
+        }
+    });
+
     await pluginManager.initializeServices(app, adminPanelRoutes, __dirname);
     // 在所有服务插件都注册完路由后，再将 adminApiRouter 挂载到主 app 上
     app.use('/admin_api', adminPanelRoutes);
@@ -1275,6 +1309,9 @@ async function initialize() {
 
     // 初始化通用任务调度器
     taskScheduler.initialize(pluginManager, webSocketServer, DEBUG_MODE);
+
+    // 初始化对话世界观文档管理器
+    DialogueWorldviewManager.initialize(webSocketServer);
 }
 
 // Store the server instance globally so it can be accessed by gracefulShutdown

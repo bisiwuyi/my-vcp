@@ -1,0 +1,33 @@
+{
+  "metadata": {
+    "agent": "Ritsu",
+    "generated_at": "2026-03-31T01:10:00+08:00",
+    "total_memory_nodes": 1278,
+    "total_semantic_edges": 3721,
+    "memory_purity": 94.2,
+    "recall_accuracy_improvement": 32.7
+  },
+  "memory_domains": [
+    {
+      "domain_name": "VCP系统架构",
+      "node_count": 426,
+      "edge_count": 1582
+    },
+    {
+      "domain_name": "Agent Swarm开发",
+      "node_count": 382,
+      "edge_count": 1217
+    },
+    {
+      "domain_name": "工具协议规范",
+      "node_count": 273,
+      "edge_count": 724
+    },
+    {
+      "domain_name": "故障处理记录",
+      "node_count": 197,
+      "edge_count": 198
+    }
+  ],
+  "export_note": "本文件为AgentDream自动生成的结构化记忆图谱快照，仅用于RAG检索加速，原始可信数据源为dailynote/Ritsu目录下的.md日记文件"
+}

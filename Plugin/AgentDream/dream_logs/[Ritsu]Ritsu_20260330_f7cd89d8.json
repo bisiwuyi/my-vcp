@@ -1,0 +1,14 @@
+{
+  "dreamId": "dream-20260330-[Ritsu]Ritsu-e8ce1085",
+  "agentName": "[Ritsu]Ritsu",
+  "timestamp": "2026-03-30T11:16:07.464Z",
+  "operations": [
+    {
+      "type": "unknown",
+      "operationId": "op-1",
+      "command": "DreamRecall",
+      "status": "error",
+      "error": "未知的梦操作类型: DreamRecall"
+    }
+  ]
+}

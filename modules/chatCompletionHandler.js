@@ -493,6 +493,7 @@ class ChatCompletionHandler {
 
       // --- 统一处理所有变量替换 ---
       // 创建一个包含所有所需依赖的统一上下文
+      const requestId = originalBody.topicId || originalBody.requestId || originalBody.messageId;
       const processingContext = {
         pluginManager,
         cachedEmojiLists: this.config.cachedEmojiLists,
@@ -500,6 +501,7 @@ class ChatCompletionHandler {
         superDetectors: this.config.superDetectors,
         DEBUG_MODE,
         messages: tavernProcessedMessages, // 将近期消息列表传递下去，用于支持上下文动态折叠 (Contextual Folding)
+        requestId, // 用于需要会话ID的占位符（如 {{VCPWorldview}}）
         // 🔒 灵魂级占位符去重：跨消息共享展开状态
         // Agent 类：整个上下文只允许展开一个 agent（第一个遇到的），后续所有 agent 占位符均不展开
         // Toolbox 类：每种 toolbox 各允许展开一次，同名重复出现时不再展开
@@ -623,6 +625,70 @@ class ChatCompletionHandler {
 
       originalBody.messages = processedMessages;
       await writeDebugLog('LogOutputAfterProcessing', originalBody);
+
+      // --- @指令 强制路由处理 (vcp_force_route) ---
+      // 注入工具提示，让 Agent LLM 自行决定如何调用工具
+      if (originalBody.vcp_force_route) {
+        const { plugin, command, user_input } = originalBody.vcp_force_route;
+        if (plugin) {
+          if (DEBUG_MODE) console.log(`[ForceRoute] 强制路由到插件: ${plugin}, 命令: ${command || '(未指定)'}`);
+
+          const vcpLogFunctions = pluginManager.getVCPLogFunctions();
+
+          vcpLogFunctions.pushVcpInfo({
+            type: 'force_route_status',
+            status: 'executing',
+            plugin: plugin,
+            command: command || '(未指定)',
+            messageId: id
+          });
+
+          function buildForceRouteHint(pluginName, cmdName, userInput) {
+            try {
+              const registry = pluginManager.getPluginRegistry();
+              const pluginData = registry.plugins.find(p => p.name === pluginName);
+              if (!pluginData) {
+                return `用户要求：${userInput || ''}\n请使用 ${pluginName} 插件完成此任务。`;
+              }
+
+              if (cmdName) {
+                const cmd = pluginData.capabilities?.invocationCommands?.find(
+                  c => c.command === cmdName
+                );
+                const cmdDesc = cmd?.description || '';
+                const cmdExample = cmd?.example || '';
+
+                const exampleSection = cmdExample
+                  ? `\n\n【调用示例】\n${cmdExample}`
+                  : '';
+
+                return `用户要求：${userInput || '(无额外说明)'}\n\n请使用 ${pluginName} 的 ${cmdName} 命令完成此任务。\n\n【命令说明】\n${cmdDesc}${exampleSection}`;
+              } else {
+                const pluginDesc = pluginData.description || '';
+                const allCommands = pluginData.capabilities?.invocationCommands || [];
+                const commandList = allCommands.map((c, i) =>
+                  `${i + 1}. ${c.command} - ${c.description ? c.description.split('\n')[0] : ''}`
+                ).join('\n');
+
+                return `用户要求：${userInput || '(无额外说明)'}\n\n请使用 ${pluginName} 插件完成此任务。\n\n【插件说明】\n${pluginDesc}\n\n【可用命令】\n${commandList || '（该插件暂无命令说明）'}\n\n请根据用户需求选择合适的命令执行。`;
+              }
+            } catch (e) {
+              if (DEBUG_MODE) console.warn(`[ForceRoute] 构建提示失败:`, e.message);
+              return `用户要求：${userInput || ''}\n请使用 ${pluginName} ${cmdName ? cmdName : ''} 完成此任务。`;
+            }
+          }
+
+          const hint = buildForceRouteHint(plugin, command, user_input);
+          if (DEBUG_MODE) console.log(`[ForceRoute] 注入提示:\n${hint.substring(0, 200)}...`);
+
+          if (originalBody.messages && originalBody.messages.length > 0) {
+            const lastMsgIdx = originalBody.messages.length - 1;
+            if (originalBody.messages[lastMsgIdx].role === 'user') {
+              originalBody.messages[lastMsgIdx].content = hint;
+            }
+          }
+        }
+      }
 
       const willStreamResponse = isOriginalRequestStreaming;
 

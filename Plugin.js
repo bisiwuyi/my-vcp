@@ -661,9 +661,41 @@ class PluginManager extends EventEmitter {
         if (this.debugMode) console.log(overallLog.join('\n'));
     }
 
-    // New method to get all individual descriptions
     getIndividualPluginDescriptions() {
         return this.individualPluginDescriptions;
+    }
+
+    getPluginRegistry() {
+        const registry = {
+            timestamp: Date.now(),
+            plugins: []
+        };
+
+        for (const plugin of this.plugins.values()) {
+            const pluginData = {
+                name: plugin.name,
+                displayName: plugin.displayName || plugin.name,
+                pluginType: plugin.pluginType,
+                description: plugin.description || '',
+                capabilities: {
+                    invocationCommands: []
+                }
+            };
+
+            if (plugin.capabilities && plugin.capabilities.invocationCommands) {
+                for (const cmd of plugin.capabilities.invocationCommands) {
+                    pluginData.capabilities.invocationCommands.push({
+                        command: cmd.command || cmd.commandIdentifier || '',
+                        description: cmd.description || '',
+                        example: cmd.example || null
+                    });
+                }
+            }
+
+            registry.plugins.push(pluginData);
+        }
+
+        return registry;
     }
 
     getAllPlaceholderValues() {

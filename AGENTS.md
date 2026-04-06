@@ -101,7 +101,84 @@ VCPToolBox/
 - 单仓多运行时插件生态（Node + Python + 原生/Rust）。
 - 以 manifest 驱动插件生命周期，禁用态通过文件命名表达。
 - 提示词工程高度依赖占位符与配置注入。
-- 管理前端以内嵌静态资源方式存在于 `AdminPanel/`，不是独立前端工程。
+- 管理前端以内嵌静态资源方式存在于 `AdminPanel/`，，不是独立前端工程。
+
+## @指令 系统（自然语言命令终端）
+
+**目的：** 将聊天窗口升级为"自然语言高级命令终端"，通过 `@plugin/command 参数` 格式实现确定性的插件调度。
+
+### 架构概览
+```
+用户输入 @OpenCli/generate 帮我写个Python贪吃蛇
+        ↓
+前端检测 @ 触发 → 模糊搜索插件命令 → 用户选择/补全
+        ↓
+前端发送 vcp_force_route 请求到后端
+        ↓
+后端 chatCompletionHandler 拦截并强制路由
+        ↓
+后端调用 pluginManager.processToolCall 执行插件
+        ↓
+WebSocket 推送执行状态到前端 → 前端显示呼吸灯状态
+```
+
+### 后端实现
+| 文件 | 改动 | 说明 |
+|------|------|------|
+| `server.js` | 新增 `GET /v1/plugins/registry` 路由 | 返回插件注册表 |
+| `server.js` | 新增 `REGISTRY_UPDATED` 广播 | 插件热更新时通知前端 |
+| `Plugin.js` | 新增 `getPluginRegistry()` 方法 | 提取插件 invocationCommands |
+| `modules/chatCompletionHandler.js` | 新增 `vcp_force_route` 拦截 | 强制路由与熔断报错 |
+
+### 前端实现
+| 文件 | 改动 | 说明 |
+|------|------|------|
+| `modules/inputEnhancer.js` | 新增 `@指令` 模糊搜索 | 检测 `@plugin/command` 模式 |
+| `modules/inputEnhancer.js` | 新增命令历史 ArrowUp 回溯 | 记录并召回历史命令 |
+| `modules/vcpClient.js` | 新增 `detectForceRouteCommand()` | 提取 `vcp_force_route` 信息 |
+| `modules/messageRenderer.js` | 新增 `updateForceRouteStatus()` | 更新消息执行状态 |
+| `renderer.js` | 新增 `force_route_status` 事件处理 | 监听 WebSocket 状态更新 |
+
+### API 格式
+
+**强制路由请求** (`vcp_force_route`):
+```json
+{
+  "vcp_force_route": {
+    "plugin": "OpenCli",
+    "command": "generate",
+    "user_input": "帮我写个Python贪吃蛇",
+    "model": "gpt-4o-mini"
+  }
+}
+```
+
+**强制路由响应** (`vcp_force_route_result`):
+```json
+{
+  "type": "vcp_force_route_result",
+  "success": true,
+  "tool_name": "OpenCli",
+  "command": "generate",
+  "result": { ... }
+}
+```
+
+### WebSocket 状态广播
+```json
+{
+  "type": "force_route_status",
+  "status": "executing|success|failed",
+  "plugin": "OpenCli",
+  "command": "generate",
+  "messageId": "msg_xxx"
+}
+```
+
+### 熔断策略
+- 解析失败返回明确错误，不降级为普通聊天
+- LLM 调用失败返回 HTTP 状态码错误
+- 工具执行失败返回具体错误信息
 
 ## 常用命令
 ```bash

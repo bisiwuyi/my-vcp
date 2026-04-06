@@ -425,6 +425,34 @@ module.exports = {
 
 ---
 
+### 4.7 Token 使用量显示
+
+| 属性 | 说明 |
+|------|------|
+| **功能描述** | 非流式响应结束后，显示 AI 模型的 Token 消耗统计 |
+| **入口文件** | `modules/handlers/nonStreamHandler.js` |
+| **触发条件** | 非流式 AI 响应完成，且 API 返回 usage 数据 |
+| **处理流程** | 1. 解析 AI 响应 JSON 获取 usage → 2. 通过 WebSocket 广播 `token_usage` 消息 → 3. 前端接收并缓存 → 4. 在消息气泡下方显示 |
+| **相关文件** | `modules/handlers/nonStreamHandler.js` (后端广播)、`renderer.js` (前端接收)、`modules/messageRenderer.js` (显示)、`styles/chat.css` (样式) |
+| **输出格式** | WebSocket 消息: `{ type: 'token_usage', data: { messageId, promptTokens, completionTokens, totalTokens } }` |
+| **显示格式** | `P:1.5K C:500`（超过1000显示K） |
+| **限制条件** | 仅支持非流式响应；流式响应不返回 usage |
+
+**WebSocket 消息示例：**
+```json
+{
+  "type": "token_usage",
+  "data": {
+    "messageId": "msg_1234567890",
+    "promptTokens": 1500,
+    "completionTokens": 500,
+    "totalTokens": 2000
+  }
+}
+```
+
+---
+
 ## 5. RAG 检索功能
 
 ### 5.1 日记本向量检索

@@ -1,0 +1,14 @@
+{
+  "dreamId": "dream-20260331-[Ritsu]Ritsu-a1806765",
+  "agentName": "[Ritsu]Ritsu",
+  "timestamp": "2026-03-30T16:15:50.710Z",
+  "operations": [
+    {
+      "type": "unknown",
+      "operationId": "op-1",
+      "command": "generate",
+      "status": "error",
+      "error": "未知的梦操作类型: generate"
+    }
+  ]
+}

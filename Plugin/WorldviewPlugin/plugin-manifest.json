@@ -1,0 +1,14 @@
+{
+    "name": "WorldviewPlugin",
+    "displayName": "对话世界观文档",
+    "description": "自动将对话按时间线聚合成结构化的Markdown文档，注入system prompt供AI参考",
+    "version": "1.0.0",
+    "pluginType": "static",
+    "enabled": true,
+    "capabilities": {},
+    "dependencies": [],
+    "communication": {
+        "timeout": 30000
+    },
+    "settings": {}
+}

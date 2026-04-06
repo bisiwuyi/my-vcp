@@ -8,7 +8,7 @@
   "pluginType": "synchronous",
   "entryPoint": {
     "type": "nodejs",
-    "command": "node Plugin/DeepWikiVCP/deepwiki_vcp.js"
+    "command": "node deepwiki_vcp.js"
   },
   "communication": {
     "protocol": "stdio",

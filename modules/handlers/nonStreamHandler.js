@@ -1,6 +1,18 @@
 // modules/handlers/nonStreamHandler.js
 const vcpInfoHandler = require('../../vcpInfoHandler.js');
 const roleDivider = require('../roleDivider.js');
+const DialogueWorldviewManager = require('../DialogueWorldviewManager');
+const contextOptimizer = require('../contextOptimizer');
+
+// 安全提取多模态内容中的文本
+function extractTextFromContent(content) {
+    if (!content) return '';
+    if (typeof content === 'string') return content;
+    if (Array.isArray(content)) {
+        return content.filter(item => item.type === 'text').map(item => item.text).join('\n');
+    }
+    return JSON.stringify(content);
+}
 
 class NonStreamHandler {
   constructor(context) {
@@ -65,6 +77,30 @@ class NonStreamHandler {
     }
     if (writeChatLog) chatLogs.push({ request: originalBody, response: initMessage || fullContentFromAI});
 
+    // 提取 usage 并通过 WebSocket 广播（仅非流式响应支持）
+    const requestId = originalBody.requestId || originalBody.messageId;
+    try {
+      const parsedFirstResponse = JSON.parse(aiResponseText);
+      if (parsedFirstResponse.usage) {
+        if (webSocketServer) {
+          webSocketServer.broadcast({
+            type: 'token_usage',
+            data: {
+              messageId: requestId,
+              promptTokens: parsedFirstResponse.usage.prompt_tokens,
+              completionTokens: parsedFirstResponse.usage.completion_tokens,
+              totalTokens: parsedFirstResponse.usage.total_tokens
+            }
+          });
+          if (DEBUG_MODE) {
+            console.log(`[NonStreamHandler] Token usage broadcast: P:${parsedFirstResponse.usage.prompt_tokens} C:${parsedFirstResponse.usage.completion_tokens} T:${parsedFirstResponse.usage.total_tokens}`);
+          }
+        }
+      }
+    } catch (e) {
+      if (DEBUG_MODE) console.warn('[NonStreamHandler] Failed to extract usage:', e.message);
+    }
+
     let recursionDepth = 0;
     const maxRecursion = maxVCPLoopNonStream || 5;
     let conversationHistoryForClient = [];
@@ -77,6 +113,11 @@ class NonStreamHandler {
         if (DEBUG_MODE) console.log('[VCP NonStream Loop] Abort detected, exiting loop.');
         break;
       }
+
+      // 上下文优化：如果启用，只传递最近 N 轮对话给 AI
+      const messagesForAI = contextOptimizer.isEnabled()
+          ? contextOptimizer.extractRecentRounds(currentMessagesForNonStreamLoop)
+          : currentMessagesForNonStreamLoop;
 
       let anyToolProcessedInCurrentIteration = false;
       conversationHistoryForClient.push(currentAIContentForLoop);
@@ -134,7 +175,7 @@ class NonStreamHandler {
             {
               method: 'POST',
               headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
-              body: JSON.stringify({ ...originalBody, messages: currentMessagesForNonStreamLoop, stream: false }),
+              body: JSON.stringify({ ...originalBody, messages: messagesForAI, stream: false }),
               signal: abortController.signal,
             },
             { retries: apiRetries, delay: apiRetryDelay, debugMode: DEBUG_MODE }
@@ -241,7 +282,7 @@ class NonStreamHandler {
           {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
-            body: JSON.stringify({ ...originalBody, messages: currentMessagesForNonStreamLoop, stream: false }),
+            body: JSON.stringify({ ...originalBody, messages: messagesForAI, stream: false }),
             signal: abortController.signal,
           },
           { retries: apiRetries, delay: apiRetryDelay, debugMode: DEBUG_MODE }
@@ -295,6 +336,23 @@ class NonStreamHandler {
     }
 
     if (writeChatLog) writeChatLog(originalBody, chatLogs);
+
+    const worldviewSessionId = originalBody.topicId || requestId || `auto_${Date.now()}`;
+    const agentId = originalBody.agentId || null;
+    const rawContent = (originalBody.messages || []).filter(m => m.role === 'user').pop()?.content;
+    const lastUserMessage = extractTextFromContent(rawContent);
+    const lastAiMessage = finalContentForClient || '';
+
+    DialogueWorldviewManager.onConversationEnd(
+        currentMessagesForNonStreamLoop,
+        worldviewSessionId,
+        lastUserMessage,
+        lastAiMessage,
+        false,  // 非流式响应不存在用户中断
+        requestId,
+        agentId
+    ).catch(e => console.error('[Worldview] 处理失败:', e.message));
+
     if (!res.writableEnded && !res.destroyed) {
       res.send(Buffer.from(JSON.stringify(finalJsonResponse)));
     }
